@@ -112,13 +112,13 @@ def test_schema_accepts_lookupenum():
     }
 
     with pytest.raises(SchemaValuesError):
-        schema.set_values(bad_data)
+        schema.process_values(bad_data)
 
     good_data = {
         "enum_value": "Enum Value 3",
     }
 
-    schema.set_values(good_data)
+    schema.process_values(good_data)
 
 
 def test_schema_validates_data():
@@ -131,7 +131,7 @@ def test_schema_validates_data():
         "date_value": str(datetime.now(timezone.utc)),
     }
 
-    schema.set_values(data)
+    schema.process_values(data)
 
 
 def test_schema_invalidates_data():
@@ -145,10 +145,10 @@ def test_schema_invalidates_data():
     }
 
     with pytest.raises(SchemaValuesError):
-        schema.set_values(invalid_data)
+        schema.process_values(invalid_data)
 
     try:
-        schema.set_values(invalid_data)
+        schema.process_values(invalid_data)
     except SchemaValuesError as e:
         for key in invalid_data.keys():
             assert key in e.errors

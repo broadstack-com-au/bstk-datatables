@@ -40,7 +40,7 @@ class Schema:
 
         return MarshmallowSchema.from_dict(schema_struct)
 
-    def set_values(self, values: typing.Dict) -> typing.NoReturn:
+    def process_values(self, values: typing.Dict) -> typing.NoReturn:
         schema: MarshmallowSchema = self._schema()
         failures = schema.validate(data=values)
         if not failures:
