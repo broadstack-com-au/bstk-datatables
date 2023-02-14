@@ -1,7 +1,9 @@
 from bstk_datatables.table import Table
 from bstk_datatables.entry import Entry
-from bstk_datatables.schema import Schema
+from bstk_datatables.schema import Schema, SchemaField, SchemaFieldFormat
 from bstk_datatables.enum import Enum
+
+from enum import EnumMeta
 
 from uuid import uuid4
 
@@ -83,7 +85,16 @@ def test_load_base_schemastruct():
     schema = Schema(**data)
     assert isinstance(schema, Schema)
     for field, val in data.items():
-        assert getattr(schema, field) == val
+        if field != "fields":
+            assert getattr(schema, field) == val
+            continue
+
+        for fieldval in getattr(schema, field):
+            assert isinstance(fieldval, SchemaField)
+            assert isinstance(fieldval.format, SchemaFieldFormat)
+
+            if fieldval.format.type == "enum":
+                assert fieldval.format.lookup or fieldval.format.values
 
 
 def test_load_enum():
@@ -101,4 +112,8 @@ def test_load_enum():
     enum = Enum(**data)
     assert isinstance(enum, Enum)
     for field, val in data.items():
-        assert getattr(enum, field) == val
+        if field != "values":
+            assert getattr(enum, field) == val
+            continue
+
+        assert isinstance(getattr(enum, field), EnumMeta)
