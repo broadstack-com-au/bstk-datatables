@@ -121,7 +121,7 @@ def test_schema_accepts_lookupenum():
     schema.process_values(good_data)
 
 
-def test_schema_validates_data():
+def test_schema_accepts_valid_data():
     schema = Schema(**_schemadata)
     data = {
         "text_value": "text",

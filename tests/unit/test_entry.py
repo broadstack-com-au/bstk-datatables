@@ -6,10 +6,11 @@ from bstk_datatables.entry import Entry
 def test_load_base_entrystruct():
     data = {
         "uuid": str(uuid4()),
+        "table_id": str(uuid4()),
         "name": "Data Entry",
         "references": {"entity_uuid": str(uuid4())},
         "connector_references": {"connector1": "connector_ref"},
-        "schema": ["base"],
+        "schemata": ["base"],
         "values": {"base/value1": "XG230"},
     }
     entry = Entry(**data)

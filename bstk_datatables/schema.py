@@ -33,12 +33,16 @@ class Schema:
         self.fields = [SchemaField(**field) for field in self.fields]
         self._schema = self._build_schema()
 
+    def add_field(self, field_data: typing.Dict[typing.AnyStr, typing.Any]):
+        self.fields.append([SchemaField(**field_data)])
+        self._schema = self._build_schema()
+
     def _build_schema(self) -> MarshmallowSchema:
         schema_struct = {}
         for schemafield in self.fields:
             schema_struct[schemafield.name] = schemafield.format._field
 
-        return MarshmallowSchema.from_dict(schema_struct)
+        return MarshmallowSchema.from_dict(schema_struct, name=self.name)
 
     def process_values(self, values: typing.Dict) -> typing.NoReturn:
         schema: MarshmallowSchema = self._schema()
