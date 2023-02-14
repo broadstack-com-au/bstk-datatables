@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import uuid4
 
 import pytest
 
+from bstk_datatables.enum import Enum
 from bstk_datatables.schema import (
     Schema,
     SchemaField,
@@ -73,6 +74,45 @@ def test_load_base_schemastruct():
                 assert fieldval.format.lookup or fieldval.format.values
 
 
+def test_schema_accepts_lookupenum():
+    lookedup_enum = Enum(
+        **{
+            "uuid": str(uuid4()),
+            "references": {"entity_uuid": str(uuid4())},
+            "code": "test_enum",
+            "name": "Test Enum",
+            "values": [
+                "Enum Value 1",
+                "Enum Value 2",
+                "Enum Value 3",
+            ],
+        }
+    )
+
+    schema = Schema(
+        **{
+            "uuid": str(uuid4()),
+            "references": {"entity_uuid": str(uuid4())},
+            "name": "Base Schema",
+            "code": "base",
+            "fields": [
+                {
+                    "name": "enum_value",
+                    "format": {
+                        "type": "enum",
+                        "lookup": lookedup_enum,
+                    },
+                },
+            ],
+        }
+    )
+    data = {
+        "enum_value": "Enum Value 3",
+    }
+
+    schema.set_values(data)
+
+
 def test_schema_validates_data():
     schema = Schema(**_schemadata)
     data = {
@@ -80,13 +120,13 @@ def test_schema_validates_data():
         "number_value": 1,
         "boolean_value": False,
         "localenum_value": "Local Enum Value 1",
-        "date_value": datetime.utcnow(),
+        "date_value": str(datetime.now(timezone.utc)),
     }
 
     schema.set_values(data)
 
 
-def test_schema_invvalidates_data():
+def test_schema_invalidates_data():
     schema = Schema(**_schemadata)
     invalid_data = {
         "text_value": True,

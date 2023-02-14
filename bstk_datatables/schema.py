@@ -1,9 +1,10 @@
 import typing
 from dataclasses import dataclass, field
-from enum import Enum
 
 from marshmallow import Schema as MarshmallowSchema
 from marshmallow import fields as marshmallow_fields
+
+from .enum import Enum, PyEnum
 
 
 class SchemaValuesError(Exception):
@@ -79,7 +80,7 @@ class SchemaFieldFormat:
             "number": "Number",
             "bool": "Boolean",
             "enum": "Enum",
-            "datetime": "DateTime",
+            "datetime": "AwareDateTime",
         }
         if type in _map:
             return _map[type]
@@ -91,6 +92,10 @@ class SchemaFieldFormat:
             if self.values:
                 self._field = getattr(
                     marshmallow_fields, self._to_marshmallow(self.type)
-                )(enum=Enum("enum", self.values))
+                )(enum=PyEnum("enum", self.values))
+            if self.lookup and isinstance(self.lookup, Enum):
+                self._field = getattr(
+                    marshmallow_fields, self._to_marshmallow(self.type)
+                )(enum=self.lookup.values)
         else:
             self._field = getattr(marshmallow_fields, self._to_marshmallow(self.type))()
