@@ -1,4 +1,4 @@
-from marshmallow.fields import Boolean, DateTime, Number, String
+from marshmallow.fields import AwareDateTime, Boolean, Number, String
 
 from bstk_datatables.schema import SchemaField
 
@@ -48,4 +48,4 @@ def test_schemafield_datetime():
             },
         }
     )
-    assert isinstance(field.format._field, DateTime)
+    assert isinstance(field.format._field, AwareDateTime)

@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from marshmallow import Schema as MarshmallowSchema
 from marshmallow import fields as marshmallow_fields
 
+from . import SCHEMAFIELD_MAP
 from .enum import Enum, PyEnum
 
 
@@ -74,28 +75,21 @@ class SchemaFieldFormat:
     _field: marshmallow_fields.Field = field(init=False, default=None)
 
     @staticmethod
-    def _to_marshmallow(type: typing.AnyStr) -> typing.AnyStr:
-        _map = {
-            "text": "String",
-            "number": "Number",
-            "bool": "Boolean",
-            "enum": "Enum",
-            "datetime": "AwareDateTime",
-        }
-        if type in _map:
-            return _map[type]
+    def _get_mapped_fieldclass(type: typing.AnyStr) -> typing.Callable:
+        if type in SCHEMAFIELD_MAP:
+            return SCHEMAFIELD_MAP[type]
 
         raise ValueError(f"Field format type `{type}` is invalid")
 
     def __post_init__(self):
+        field_params = {}
+
         if self.type == "enum":
             if self.values:
-                self._field = getattr(
-                    marshmallow_fields, self._to_marshmallow(self.type)
-                )(enum=PyEnum("enum", self.values))
-            if self.lookup and isinstance(self.lookup, Enum):
-                self._field = getattr(
-                    marshmallow_fields, self._to_marshmallow(self.type)
-                )(enum=self.lookup.values)
-        else:
-            self._field = getattr(marshmallow_fields, self._to_marshmallow(self.type))()
+                field_params["enum"] = PyEnum("enum", self.values)
+            elif self.lookup and isinstance(self.lookup, Enum):
+                field_params["enum"] = self.lookup.values
+            else:
+                return
+
+        self._field = self._get_mapped_fieldclass(self.type)(**field_params)

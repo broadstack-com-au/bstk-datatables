@@ -107,18 +107,18 @@ def test_schema_accepts_lookupenum():
         }
     )
 
-    good_data = {
-        "enum_value": "Enum Value 3",
-    }
-
-    schema.set_values(good_data)
-
     bad_data = {
         "enum_value": "Enum Value 99",
     }
 
     with pytest.raises(SchemaValuesError):
         schema.set_values(bad_data)
+
+    good_data = {
+        "enum_value": "Enum Value 3",
+    }
+
+    schema.set_values(good_data)
 
 
 def test_schema_validates_data():
