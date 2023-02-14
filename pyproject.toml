@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "bstk-datatables"
+version = "0.0.1"
+description = "A polymorphic schema managed semi structured crosslinked data dictionary builder.. BINGO!"
+authors = ["colin <colin@broadstack.com.au>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "bstk_datatables"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+marshmallow = "^3.19.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.1"
+black = "^23.1.0"
+flake8 = "^6.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
