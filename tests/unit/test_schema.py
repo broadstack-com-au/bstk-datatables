@@ -3,6 +3,7 @@ from uuid import uuid4
 
 import pytest
 
+from bstk_datatables import export
 from bstk_datatables.enum import Enum
 from bstk_datatables.schema import (
     Schema,
@@ -74,6 +75,12 @@ def test_load_base_schemastruct():
                 assert fieldval.format.lookup or fieldval.format.values
 
 
+def test_export_base_schema():
+    schema = Schema(**_schemadata)
+    exported = export(schema)
+    assert exported == _schemadata
+
+
 def test_schema_accepts_lookupenum():
     lookedup_enum = Enum(
         **{
@@ -119,6 +126,41 @@ def test_schema_accepts_lookupenum():
     }
 
     schema.process_values(good_data)
+
+
+def test_export_schema_with_lookups():
+    lookedup_enum = Enum(
+        **{
+            "uuid": str(uuid4()),
+            "references": {"entity_uuid": str(uuid4())},
+            "code": "test_enum",
+            "name": "Test Enum",
+            "values": [
+                "Enum Value 1",
+                "Enum Value 2",
+                "Enum Value 3",
+            ],
+        }
+    )
+
+    _lookupschemadata = {
+        "uuid": str(uuid4()),
+        "references": {"entity_uuid": str(uuid4())},
+        "name": "Base Schema",
+        "code": "base",
+        "fields": [
+            {
+                "name": "enum_value",
+                "format": {
+                    "type": "enum",
+                    "lookup": lookedup_enum,
+                },
+            },
+        ],
+    }
+    schema = Schema(**_lookupschemadata)
+    exported = export(schema)
+    assert exported == _lookupschemadata
 
 
 def test_schema_accepts_valid_data():

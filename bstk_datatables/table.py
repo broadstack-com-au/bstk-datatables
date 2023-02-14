@@ -8,3 +8,6 @@ class Table:
     name: typing.AnyStr
     references: typing.Dict[typing.AnyStr, typing.Any]
     connectors: typing.Dict[typing.AnyStr, typing.Any]
+
+    def export(self) -> typing.Dict[typing.AnyStr, typing.Any]:
+        return self.__dict__

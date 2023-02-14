@@ -1,10 +1,13 @@
+from __future__ import annotations
+
+import copy
 import typing
 from dataclasses import dataclass, field
 
 from marshmallow import Schema as MarshmallowSchema
 from marshmallow import fields as marshmallow_fields
 
-from . import SCHEMAFIELD_MAP
+from . import SCHEMAFIELD_MAP, convert_to_marshmallow
 from .enum import Enum, PyEnum
 
 
@@ -26,37 +29,50 @@ class Schema:
     name: typing.AnyStr
     code: typing.AnyStr
     references: typing.Dict[typing.AnyStr, typing.Any]
-    fields: typing.List["SchemaField"]
+    fields: typing.List[
+        typing.Union[SchemaField, typing.Dict[typing.AnyStr, typing.Any]]
+    ]
+    _field_list: typing.List[typing.AnyStr] = field(init=False, default=None)
     _schema: MarshmallowSchema = field(init=False, default=None)
 
     def __post_init__(self):
-        self.fields = [SchemaField(**field) for field in self.fields]
-        self._schema = self._build_schema()
+        _fields = copy.deepcopy(self.fields)
+        self.fields = []
+        self._field_list = []
+        for _field_data in _fields:
+            if isinstance(_field_data, SchemaField):
+                self.add_field(_field_data)
+            else:
+                self.add_field(SchemaField(**_field_data))
+        self._schema = convert_to_marshmallow(self)
 
-    def add_field(self, field_data: typing.Dict[typing.AnyStr, typing.Any]):
-        self.fields.append([SchemaField(**field_data)])
-        self._schema = self._build_schema()
-
-    def _build_schema(self) -> MarshmallowSchema:
-        schema_struct = {}
-        for schemafield in self.fields:
-            schema_struct[schemafield.name] = schemafield.format._field
-
-        return MarshmallowSchema.from_dict(schema_struct, name=self.name)
+    def add_field(self, schema_field: SchemaField):
+        if schema_field.name in self._field_list:
+            raise ValueError(f"Duplicate field name `{schema_field.name}`")
+        self._field_list.append(schema_field.name)
+        self.fields.append(schema_field)
 
     def process_values(self, values: typing.Dict) -> typing.NoReturn:
-        schema: MarshmallowSchema = self._schema()
-        failures = schema.validate(data=values)
+        _schema: MarshmallowSchema = self._schema()
+        failures = _schema.validate(data=values)
         if not failures:
             return
 
         raise SchemaValuesError(errors=failures)
 
+    def export(self) -> typing.Dict[typing.AnyStr, typing.Any]:
+        _fields = ["uuid", "name", "code", "references"]
+        rtn = {}
+        for _exportfield in _fields:
+            rtn[_exportfield] = self.__dict__[_exportfield]
+        rtn["fields"] = [_field.export() for _field in self.fields]
+        return rtn
+
 
 @dataclass
 class SchemaField:
     name: typing.AnyStr
-    format: "SchemaFieldFormat"
+    format: SchemaFieldFormat
     _value: typing.Any = field(init=False, default=None)
 
     def __post_init__(self):
@@ -69,6 +85,9 @@ class SchemaField:
     @value.setter
     def value(self, value):
         self._value = value
+
+    def export(self) -> typing.Dict[typing.AnyStr, typing.Any]:
+        return {"name": self.__dict__["name"], "format": self.format.export()}
 
 
 @dataclass
@@ -86,14 +105,22 @@ class SchemaFieldFormat:
         raise ValueError(f"Field format type `{type}` is invalid")
 
     def __post_init__(self):
-        field_params = {}
+        _field_params = {}
 
         if self.type == "enum":
             if self.values:
-                field_params["enum"] = PyEnum("enum", self.values)
+                _field_params["enum"] = PyEnum("enum", self.values)
             elif self.lookup and isinstance(self.lookup, Enum):
-                field_params["enum"] = self.lookup.values
+                _field_params["enum"] = self.lookup.values
             else:
                 return
 
-        self._field = self._get_mapped_fieldclass(self.type)(**field_params)
+        self._field = self._get_mapped_fieldclass(self.type)(**_field_params)
+
+    def export(self) -> typing.Dict[typing.AnyStr, typing.Any]:
+        _fields = ["type", "values", "lookup"]
+        rtn = {}
+        for _exportfield in _fields:
+            if self.__dict__[_exportfield]:
+                rtn[_exportfield] = self.__dict__[_exportfield]
+        return rtn
