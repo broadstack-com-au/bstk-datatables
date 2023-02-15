@@ -48,7 +48,9 @@ class MergedSchema:
                     self._missing_lookups[_field.format.lookup] = []
                 self._missing_lookups[_field.format.lookup].append(_field.format)
 
-        self.name = f"Merged schema: {', '.join(self._schema_list)}"
+        if not self.name:
+            self.name = f"Merged schema: {', '.join(self._schema_list)}"
+
         if not self._missing_lookups:
             self._schema = convert_to_marshmallow(self)
 
@@ -64,7 +66,7 @@ class MergedSchema:
 
     def add_field(self, new_field: SchemaField) -> None:
         if new_field.code in self._field_list:
-            # Duplicates are expected here because we're merging
+            # Duplicates are skipped here because we're merging.
             return
         self._field_list.append(new_field.code)
         self.fields.append(new_field)
