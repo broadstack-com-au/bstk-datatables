@@ -23,7 +23,7 @@ jobs:
 
       - name: Build packages
         run: |
-          poetry version ${GITHUB_REF#refs/heads/release/}
+          poetry version ${GITHUB_REF##*/}
           poetry build --no-interaction
 
       - name: Publish package to TestPyPI

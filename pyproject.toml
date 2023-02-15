@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bstk-datatables"
-version = "0.0.1"
+version = "0.0.2"
 description = "A polymorphic schema managed semi structured crosslinked data dictionary builder.. BINGO!"
 authors = ["colin <colin@broadstack.com.au>"]
 license = "MIT"
