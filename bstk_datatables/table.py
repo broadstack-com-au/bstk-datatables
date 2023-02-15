@@ -34,7 +34,7 @@ class Table:
             _schema = schema
 
         if not _schema:
-            raise ValueError(f"Invalid value for schema")
+            raise ValueError("Invalid value for `schema`")
 
         if _schema in self.schemata:
             return
