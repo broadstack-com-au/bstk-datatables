@@ -5,10 +5,10 @@ description = "A polymorphic schema managed semi structured crosslinked data dic
 authors = ["colin <colin@broadstack.com.au>"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "bstk_datatables"}]
+packages = [{ include = "bstk_datatables" }]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.7"
 marshmallow = "^3.19.0"
 
 [tool.poetry.group.dev.dependencies]

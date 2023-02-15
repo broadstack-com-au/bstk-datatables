@@ -61,11 +61,6 @@ jobs:
           poetry run pytest --junit-xml=${{ matrix.python-version }}-${{ matrix.mongodb-version }}-unit-test-results.xml tests/unit
         continue-on-error: true
 
-      - name: Start MongoDB
-        uses: supercharge/mongodb-github-action@1.9.0
-        with:
-          mongodb-version: ${{ matrix.mongodb-version }}
-
       - name: Execute Integration Tests
         run: |
           poetry run pytest --junit-xml=${{ matrix.python-version }}-${{ matrix.mongodb-version}}-integration-test-results.xml tests/integration
