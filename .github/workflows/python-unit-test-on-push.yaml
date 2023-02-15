@@ -1,0 +1,99 @@
+name: Check & Test
+
+on:
+  pull_request_review:
+    types: [submitted]
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+    paths:
+      - "**/*.py"
+      - "poetry.lock"
+      - "pyproject.toml"
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: snok/install-poetry@v1
+        with:
+          version: 1.1.12
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: cache deps
+        id: cache-deps
+        uses: actions/cache@v2
+        with:
+          path: .venv
+          key: pydeps-${{ hashFiles('**/poetry.lock') }}-${{ matrix.python-version }}
+
+      - run: poetry install --no-interaction --no-root
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+
+      - run: poetry install --no-interaction
+
+      - name: Lint with black
+        run: |
+          poetry run black --check --diff .
+
+      - name: Run pyflakes (flake8)
+        run: |
+          poetry run flake8 --select=F bstk_application lib models modules processor routers schemas actions cli
+
+      - name: Execute Unit Tests
+        run: |
+          poetry run pytest --junit-xml=${{ matrix.python-version }}-${{ matrix.mongodb-version }}-unit-test-results.xml tests/unit
+        continue-on-error: true
+
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.9.0
+        with:
+          mongodb-version: ${{ matrix.mongodb-version }}
+
+      - name: Execute Integration Tests
+        run: |
+          poetry run pytest --junit-xml=${{ matrix.python-version }}-${{ matrix.mongodb-version}}-integration-test-results.xml tests/integration
+        continue-on-error: true
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: Test Results (Python ${{ matrix.python-version }}
+          path: "*-test-results.xml"
+
+      - name: Upload Test Logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: Test Logs (Python ${{ matrix.python-version }}
+          path: "logs/*.log"
+          retention-days: 1
+
+  publish-event-file:
+    name: "Event File"
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    # the build-and-test job might be skipped, we don't need to run this job then
+    if: success() || failure()
+
+    steps:
+      - name: Upload Event File
+        uses: actions/upload-artifact@v3
+        with:
+          name: Event File
+          path: ${{ github.event_path }}

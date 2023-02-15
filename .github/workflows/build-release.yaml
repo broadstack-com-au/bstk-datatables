@@ -1,0 +1,35 @@
+name: Create release package
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "release/*"
+
+env:
+  SERVER: production
+  PUBLIC_PATH: /
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Create release bundle
+        run: git archive HEAD --prefix="bstk_datatables-${{ github.sha }}/" --output="bstk_datatables-${{ github.sha }}.tgz"
+
+      - name: Extract release name from branch ref
+        shell: bash
+        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/release/})"
+        id: release_name
+
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "${{ steps.release_name.outputs.branch }}"
+          draft: true
+          prerelease: true
+          title: "Release / ${{ steps.release_name.outputs.branch }}"
+          files: |
+            bstk_datatables-${{ github.sha }}.tgz
