@@ -160,12 +160,13 @@ def test_export_schema_with_lookups():
     }
     schema = Schema(**_lookupschemadata)
     exported = export(schema)
+    _lookupschemadata["fields"][0]["format"]["lookup"] = "test_enum"
     assert exported == _lookupschemadata
 
 
 def test_schema_accepts_valid_data():
     schema = Schema(**_schemadata)
-    schema.add_lookup(
+    schema.attach_lookup(
         Enum(
             **{
                 "uuid": str(uuid4()),
@@ -193,7 +194,7 @@ def test_schema_accepts_valid_data():
 
 def test_schema_invalidates_data():
     schema = Schema(**_schemadata)
-    schema.add_lookup(
+    schema.attach_lookup(
         Enum(
             **{
                 "uuid": str(uuid4()),
@@ -260,3 +261,45 @@ def test_schemafieldformat_accepts_lookup():
     )
     _field.attach_lookup(_lookup)
     assert _field._missing_lookup is False
+
+
+def test_schema_multilookup_attachment():
+    _lookupschema = {
+        "uuid": str(uuid4()),
+        "references": {"entity_uuid": str(uuid4())},
+        "name": "Base Schema",
+        "code": "base",
+        "fields": [
+            {
+                "name": "lookup_one",
+                "format": {"type": "enum", "lookup": "test_enum"},
+            },
+            {
+                "name": "lookup_two",
+                "format": {"type": "enum", "lookup": "test_enum"},
+            },
+        ],
+    }
+    schema = Schema(**_lookupschema)
+    schema.attach_lookup(
+        Enum(
+            **{
+                "uuid": str(uuid4()),
+                "references": {"entity_uuid": str(uuid4())},
+                "code": "test_enum",
+                "name": "Test Enum",
+                "values": [
+                    "Enum Value 1",
+                    "Enum Value 2",
+                    "Enum Value 3",
+                ],
+            }
+        )
+    )
+    assert not schema._missing_lookups
+
+    for field in schema.fields:
+        assert isinstance(field.format.lookup, Enum)
+
+    _export = schema.export()
+    assert _lookupschema == _export

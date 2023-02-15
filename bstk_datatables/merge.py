@@ -51,7 +51,7 @@ class MergedSchema:
         if not self._missing_lookups:
             self._schema = convert_to_marshmallow(self)
 
-    def add_lookup(self, lookup: Enum) -> None:
+    def attach_lookup(self, lookup: Enum) -> None:
         if lookup.code not in self._missing_lookups:
             raise ValueError(f"Invalid lookup reference `{lookup.code}")
         for _missing_lookup in self._missing_lookups[lookup.code]:

@@ -58,7 +58,7 @@ class Schema:
         if not self._missing_lookups:
             self._schema = convert_to_marshmallow(self)
 
-    def add_lookup(self, lookup: Enum) -> None:
+    def attach_lookup(self, lookup: Enum) -> None:
         if lookup.code not in self._missing_lookups:
             raise ValueError(f"Invalid lookup reference `{lookup.code}")
         for _missing_lookup in self._missing_lookups[lookup.code]:
@@ -155,6 +155,11 @@ class SchemaFieldFormat:
         _fields = ["type", "values", "lookup"]
         rtn = {}
         for _exportfield in _fields:
+            if _exportfield == "lookup" and isinstance(
+                self.__dict__[_exportfield], Enum
+            ):
+                rtn[_exportfield] = self.__dict__[_exportfield].code
+                continue
             if self.__dict__[_exportfield]:
                 rtn[_exportfield] = self.__dict__[_exportfield]
         return rtn
