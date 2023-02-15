@@ -21,22 +21,8 @@ jobs:
         run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/release/})"
         id: release_name
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
       - name: Create release bundle
         run: git archive HEAD --prefix="bstk_datatables-${{ github.sha }}/" --output="bstk_datatables-${{ github.sha }}.tgz"
-
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-
-      - name: Build packages
-        run: poetry build --no-interaction
 
       - name: Create release
         uses: "marvinpinto/action-automatic-releases@latest"
@@ -48,10 +34,3 @@ jobs:
           title: "Release / ${{ steps.release_name.outputs.branch }}"
           files: |
             bstk_datatables-${{ github.sha }}.tgz
-            dist/*
-
-      - name: Publish package to TestPyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-          repository_url: https://test.pypi.org/legacy/
