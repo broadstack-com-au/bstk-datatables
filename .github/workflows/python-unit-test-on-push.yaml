@@ -79,13 +79,13 @@ jobs:
       - name: Upload Test Results
         uses: actions/upload-artifact@v3
         with:
-          name: Test Results (Python ${{ matrix.build-config.python-version }}
+          name: Test Results (Python ${{ matrix.build-config.python-version }})
           path: "*-test-results.xml"
 
       - name: Upload Test Logs
         uses: actions/upload-artifact@v3
         with:
-          name: Test Logs (Python ${{ matrix.build-config.python-version }}
+          name: Test Logs (Python ${{ matrix.build-config.python-version }})
           path: "logs/*.log"
           retention-days: 1
 
