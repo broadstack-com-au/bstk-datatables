@@ -20,24 +20,28 @@ _schemadata = {
     "fields": [
         {
             "name": "text_value",
+            "code": "text_value",
             "format": {
                 "type": "text",
             },
         },
         {
             "name": "number_value",
+            "code": "number_value",
             "format": {
                 "type": "number",
             },
         },
         {
             "name": "boolean_value",
+            "code": "boolean_value",
             "format": {
                 "type": "bool",
             },
         },
         {
             "name": "localenum_value",
+            "code": "localenum_value",
             "format": {
                 "type": "enum",
                 "values": [
@@ -49,12 +53,13 @@ _schemadata = {
         },
         {
             "name": "enum_value",
+            "code": "enum_value",
             "format": {
                 "type": "enum",
                 "lookup": "test_enum",
             },
         },
-        {"name": "date_value", "format": {"type": "datetime"}},
+        {"name": "date_value", "code": "date_value", "format": {"type": "datetime"}},
     ],
 }
 
@@ -105,6 +110,7 @@ def test_schema_accepts_lookupenum():
             "fields": [
                 {
                     "name": "enum_value",
+                    "code": "enum_value",
                     "format": {
                         "type": "enum",
                         "lookup": lookedup_enum,
@@ -151,6 +157,7 @@ def test_export_schema_with_lookups():
         "fields": [
             {
                 "name": "enum_value",
+                "code": "enum_value",
                 "format": {
                     "type": "enum",
                     "lookup": lookedup_enum,
@@ -272,10 +279,12 @@ def test_schema_multilookup_attachment():
         "fields": [
             {
                 "name": "lookup_one",
+                "code": "lookup_one",
                 "format": {"type": "enum", "lookup": "test_enum"},
             },
             {
                 "name": "lookup_two",
+                "code": "lookup_two",
                 "format": {"type": "enum", "lookup": "test_enum"},
             },
         ],

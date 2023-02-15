@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import typing
 
 from marshmallow import Schema as MarshmallowSchema
@@ -27,6 +28,11 @@ def convert_to_marshmallow(
 ) -> MarshmallowSchema:
     _schema_struct = {}
     for _schemafield in schema.fields:
-        _schema_struct[_schemafield.name] = _schemafield.format._field
+        _schema_struct[_schemafield.code] = _schemafield.format._field
 
     return MarshmallowSchema.from_dict(_schema_struct, name=schema.name)
+
+
+def name_to_code(name: typing.AnyStr) -> typing.AnyStr:
+    code = re.sub(r"/(\W)/gm", "", name.replace(" ", "_"))
+    return code.lower()

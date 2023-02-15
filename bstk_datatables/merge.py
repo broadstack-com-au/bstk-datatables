@@ -21,24 +21,25 @@ class MergedSchema:
     ] = field(init=False, default=None)
 
     def __post_init__(self):
-        if len(self.schemata) < 1:
-            return
-
         self._missing_lookups = {}
         self._schema_list = []
         self.fields = []
         self._field_list = []
-        for schema in self.schemata:
-            if isinstance(schema, Schema):
-                self.add_field(_field for _field in schema.fields)
-                self._schema_list.append(schema.name)
 
-            if "fields" in schema:
+        if len(self.schemata) < 1:
+            return
+
+        for _schema in self.schemata:
+            if isinstance(_schema, Schema):
+                for _field in _schema.fields:
+                    self.add_field(_field)
+                self._schema_list.append(_schema.code)
+            elif "fields" in _schema:
                 _schemaname = f"schema_{len(self._schema_list)}"
-                if "name" in schema:
-                    _schemaname = schema["name"]
+                if "name" in _schema:
+                    _schemaname = _schema["name"]
                 self._schema_list.append(_schemaname)
-                for dictfield in schema["fields"]:
+                for dictfield in _schema["fields"]:
                     self.add_field(SchemaField(**dictfield))
 
         for _field in self.fields:
@@ -62,10 +63,10 @@ class MergedSchema:
             self._schema = convert_to_marshmallow(self)
 
     def add_field(self, new_field: SchemaField) -> None:
-        if new_field.name in self._field_list:
+        if new_field.code in self._field_list:
             # Duplicates are expected here because we're merging
             return
-        self._field_list.append(new_field.name)
+        self._field_list.append(new_field.code)
         self.fields.append(new_field)
 
     def process_values(self, values: typing.Dict) -> None:

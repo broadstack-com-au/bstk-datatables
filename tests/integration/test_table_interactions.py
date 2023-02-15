@@ -44,7 +44,7 @@ def test_table_process_entry():
 
     entry_data = {
         "uuid": str(uuid4()),
-        "table_id": str(uuid4()),
+        "table_id": None,
         "name": "Data Entry",
         "references": {"entity_uuid": str(uuid4())},
         "connector_references": {"connector1": "connector_ref"},
