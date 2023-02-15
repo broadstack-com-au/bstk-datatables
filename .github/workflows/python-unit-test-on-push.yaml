@@ -21,15 +21,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        build-config:
+          - python-version: "3.7"
+            lint: false
+          - python-version: "3.8"
+            lint: false
+          - python-version: "3.9"
+            lint: true
+          - python-version: "3.10"
+            lint: true
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.build-config.python-version }}
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.build-config.python-version }}
 
       - uses: snok/install-poetry@v1
         with:
@@ -41,7 +49,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: .venv
-          key: pydeps-${{ hashFiles('**/poetry.lock') }}-${{ matrix.python-version }}
+          key: pydeps-${{ hashFiles('**/poetry.lock') }}-${{ matrix.build-config.python-version }}
 
       - run: poetry install --no-interaction --no-root
         if: steps.cache-deps.outputs.cache-hit != 'true'
@@ -49,33 +57,35 @@ jobs:
       - run: poetry install --no-interaction
 
       - name: Lint with black
+        if: matrix.build-config.lint
         run: |
           poetry run black --check --diff .
 
       - name: Run pyflakes (flake8)
+        if: matrix.build-config.lint
         run: |
           poetry run flake8 --select=F bstk_application lib models modules processor routers schemas actions cli
 
       - name: Execute Unit Tests
         run: |
-          poetry run pytest --junit-xml=${{ matrix.python-version }}-${{ matrix.mongodb-version }}-unit-test-results.xml tests/unit
+          poetry run pytest --junit-xml=${{ matrix.build-config.python-version }}-${{ matrix.mongodb-version }}-unit-test-results.xml tests/unit
         continue-on-error: true
 
       - name: Execute Integration Tests
         run: |
-          poetry run pytest --junit-xml=${{ matrix.python-version }}-${{ matrix.mongodb-version}}-integration-test-results.xml tests/integration
+          poetry run pytest --junit-xml=${{ matrix.build-config.python-version }}-${{ matrix.mongodb-version}}-integration-test-results.xml tests/integration
         continue-on-error: true
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v3
         with:
-          name: Test Results (Python ${{ matrix.python-version }}
+          name: Test Results (Python ${{ matrix.build-config.python-version }}
           path: "*-test-results.xml"
 
       - name: Upload Test Logs
         uses: actions/upload-artifact@v3
         with:
-          name: Test Logs (Python ${{ matrix.python-version }}
+          name: Test Logs (Python ${{ matrix.build-config.python-version }}
           path: "logs/*.log"
           retention-days: 1
 
