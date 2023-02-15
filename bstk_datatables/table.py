@@ -41,7 +41,7 @@ class Table:
 
         self.schemata.append(_schema)
 
-    def adopt(self, entry: Entry) -> Entry:
+    def adopt_entry(self, entry: Entry) -> Entry:
         entry.table_id = self.uuid
         entry.schemata = list(dict.fromkeys(self.schemata + entry.schemata))
         return entry

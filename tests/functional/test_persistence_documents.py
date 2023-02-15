@@ -74,7 +74,7 @@ def pytest_sessionstart():
     )
 
     _printer_entry = Entry(uuid=str(uuid4()), name="Entry for printer")
-    _printer_table.adopt(_printer_entry)
+    _printer_table.adopt_entry(_printer_entry)
     test_data.append(
         {
             "type": "entry",

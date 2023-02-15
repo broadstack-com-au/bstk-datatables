@@ -45,7 +45,7 @@ def test_simple_usage_pattern():
 
     # Create an entry and attach it to the table
     _printer_entry = Entry(uuid=str(uuid4()), name="Entry for printer")
-    _printer_table.adopt(_printer_entry)
+    _printer_table.adopt_entry(_printer_entry)
 
     # Generate the merged schema so we can present it to the user for input
     _merged_table_schema = MergedSchema([_hardware_schema, _printer_schema])

@@ -26,7 +26,7 @@ def test_table_adopt():
     }
     entry = Entry(**entry_data)
 
-    table.adopt(entry)
+    table.adopt_entry(entry)
     assert entry.table_id == table.uuid
     assert "base" in entry.schemata
     assert set(set(table.schemata) & set(entry.schemata)) == set(["table_schema"])
@@ -52,7 +52,7 @@ def test_table_process_entry():
         "values": {"entry_type": "Test Entry", "value1": "XG230"},
     }
     entry = Entry(**entry_data)
-    table.adopt(entry)
+    table.adopt_entry(entry)
 
     _schemas = {
         "table_schema": {
