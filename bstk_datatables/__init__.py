@@ -17,6 +17,8 @@ SCHEMAFIELD_MAP: typing.Dict[typing.AnyStr, typing.Callable] = {
 def export(
     model: typing.Union[Entry, Enum, Schema, Table]  # noqa: F821
 ) -> typing.Dict[typing.AnyStr, typing.Any]:
+    if not hasattr(model, "export") or not callable(model.export):
+        raise Exception("Model `{model}` is not exportable")
     return model.export()
 
 

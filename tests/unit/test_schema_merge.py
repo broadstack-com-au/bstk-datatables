@@ -2,6 +2,7 @@ from uuid import uuid4
 
 import pytest
 
+from bstk_datatables import export
 from bstk_datatables.merge import MergedSchema, SchemaValuesError
 
 _schemadata = [
@@ -79,6 +80,12 @@ def test_process_merged_schema():
     assert isinstance(schema, MergedSchema)
     for field in schema.fields:
         assert field.name in _schemavalues
+
+
+def test_merged_schema_noexport():
+    schema = MergedSchema(schemata=_schemadata)
+    with pytest.raises(Exception):
+        export(schema)
 
 
 def test_merged_schema_accepts_data():

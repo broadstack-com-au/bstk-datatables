@@ -34,9 +34,13 @@ class Schema:
     ]
     _field_list: typing.List[typing.AnyStr] = field(init=False, default=None)
     _schema: MarshmallowSchema = field(init=False, default=None)
+    _missing_lookups: typing.Dict[
+        typing.AnyStr, typing.List[SchemaFieldFormat]
+    ] = field(init=False, default=None)
 
     def __post_init__(self):
         _fields = copy.deepcopy(self.fields)
+        self._missing_lookups = {}
         self.fields = []
         self._field_list = []
         for _field_data in _fields:
@@ -44,15 +48,33 @@ class Schema:
                 self.add_field(_field_data)
             else:
                 self.add_field(SchemaField(**_field_data))
-        self._schema = convert_to_marshmallow(self)
 
-    def add_field(self, schema_field: SchemaField):
+        for _field in self.fields:
+            if _field.format._missing_lookup:
+                if _field.format.lookup not in self._missing_lookups:
+                    self._missing_lookups[_field.format.lookup] = []
+                self._missing_lookups[_field.format.lookup].append(_field.format)
+
+        if not self._missing_lookups:
+            self._schema = convert_to_marshmallow(self)
+
+    def add_lookup(self, lookup: Enum) -> None:
+        if lookup.code not in self._missing_lookups:
+            raise ValueError(f"Invalid lookup reference `{lookup.code}")
+        for _missing_lookup in self._missing_lookups[lookup.code]:
+            _missing_lookup.attach_lookup(lookup)
+        del self._missing_lookups[lookup.code]
+
+        if len(self._missing_lookups) < 1:
+            self._schema = convert_to_marshmallow(self)
+
+    def add_field(self, schema_field: SchemaField) -> None:
         if schema_field.name in self._field_list:
             raise ValueError(f"Duplicate field name `{schema_field.name}`")
         self._field_list.append(schema_field.name)
         self.fields.append(schema_field)
 
-    def process_values(self, values: typing.Dict) -> typing.NoReturn:
+    def process_values(self, values: typing.Dict) -> None:
         _schema: MarshmallowSchema = self._schema()
         failures = _schema.validate(data=values)
         if not failures:
@@ -96,6 +118,7 @@ class SchemaFieldFormat:
     values: typing.Optional[typing.Any] = None
     lookup: typing.Optional[typing.Any] = None
     _field: marshmallow_fields.Field = field(init=False, default=None)
+    _missing_lookup: bool = field(init=False, default=False)
 
     @staticmethod
     def _get_mapped_fieldclass(type: typing.AnyStr) -> typing.Callable:
@@ -105,14 +128,25 @@ class SchemaFieldFormat:
         raise ValueError(f"Field format type `{type}` is invalid")
 
     def __post_init__(self):
+        self.create_marshmallow_field()
+
+    def attach_lookup(
+        self, lookup_value: typing.Union[typing.List[typing.AnyStr], PyEnum]
+    ):
+        self.lookup = lookup_value
+        self.create_marshmallow_field()
+
+    def create_marshmallow_field(self):
         _field_params = {}
 
         if self.type == "enum":
+            self._missing_lookup = False
             if self.values:
                 _field_params["enum"] = PyEnum("enum", self.values)
             elif self.lookup and isinstance(self.lookup, Enum):
                 _field_params["enum"] = self.lookup.values
             else:
+                self._missing_lookup = True
                 return
 
         self._field = self._get_mapped_fieldclass(self.type)(**_field_params)

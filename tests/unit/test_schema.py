@@ -165,6 +165,21 @@ def test_export_schema_with_lookups():
 
 def test_schema_accepts_valid_data():
     schema = Schema(**_schemadata)
+    schema.add_lookup(
+        Enum(
+            **{
+                "uuid": str(uuid4()),
+                "references": {"entity_uuid": str(uuid4())},
+                "code": "test_enum",
+                "name": "Test Enum",
+                "values": [
+                    "Enum Value 1",
+                    "Enum Value 2",
+                    "Enum Value 3",
+                ],
+            }
+        )
+    )
     data = {
         "text_value": "text",
         "number_value": 1,
@@ -178,6 +193,21 @@ def test_schema_accepts_valid_data():
 
 def test_schema_invalidates_data():
     schema = Schema(**_schemadata)
+    schema.add_lookup(
+        Enum(
+            **{
+                "uuid": str(uuid4()),
+                "references": {"entity_uuid": str(uuid4())},
+                "code": "test_enum",
+                "name": "Test Enum",
+                "values": [
+                    "Enum Value 1",
+                    "Enum Value 2",
+                    "Enum Value 3",
+                ],
+            }
+        )
+    )
     invalid_data = {
         "text_value": True,
         "number_value": False,
@@ -194,3 +224,39 @@ def test_schema_invalidates_data():
     except SchemaValuesError as e:
         for key in invalid_data.keys():
             assert key in e.errors
+
+
+def test_schemafieldformat_flags_missing_lookup():
+    _field = SchemaFieldFormat(
+        **{
+            "type": "enum",
+            "lookup": "lookup_name",
+        }
+    )
+    assert _field._missing_lookup is True
+
+
+def test_schemafieldformat_accepts_lookup():
+    _field = SchemaFieldFormat(
+        **{
+            "type": "enum",
+            "lookup": "lookup_name",
+        }
+    )
+    assert _field._missing_lookup is True
+
+    _lookup = Enum(
+        **{
+            "uuid": str(uuid4()),
+            "references": {"entity_uuid": str(uuid4())},
+            "code": "test_enum",
+            "name": "Test Enum",
+            "values": [
+                "Enum Value 1",
+                "Enum Value 2",
+                "Enum Value 3",
+            ],
+        }
+    )
+    _field.attach_lookup(_lookup)
+    assert _field._missing_lookup is False

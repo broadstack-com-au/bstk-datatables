@@ -10,6 +10,7 @@ def test_load_base_tablestruct():
         "name": "Data Table",
         "references": {"entity_uuid": str(uuid4())},
         "connectors": {"connector1": "connectorclass"},
+        "schemata": ["table_schema"],
     }
     table = Table(**data)
     assert isinstance(table, Table)
@@ -23,6 +24,7 @@ def test_table_export():
         "name": "Data Table",
         "references": {"entity_uuid": str(uuid4())},
         "connectors": {"connector1": "connectorclass"},
+        "schemata": ["table_schema"],
     }
     table = Table(**data)
     exported = export(table)
