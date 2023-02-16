@@ -17,9 +17,9 @@ class Table:
 
     def __post_init__(self):
         if not self.references:
-            self.references = []
+            self.references = {}
         if not self.connectors:
-            self.connectors = []
+            self.connectors = {}
         if not self.schemata:
             self.schemata = []
 
