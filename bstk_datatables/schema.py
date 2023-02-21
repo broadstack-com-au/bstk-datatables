@@ -84,6 +84,12 @@ class Schema:
         self._field_list.append(schema_field.code)
         self.fields.append(schema_field)
 
+    def set_fields(self, schema_fields: typing.List(SchemaField)):
+        self._field_list = []
+        self.fields = []
+        for schema_field in schema_fields:
+            self.add_field(schema_field)
+
     def process_values(self, values: typing.Dict) -> None:
         _schema: MarshmallowSchema = self._schema()
         failures = _schema.validate(data=values)

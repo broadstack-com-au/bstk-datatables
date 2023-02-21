@@ -6,16 +6,23 @@ from dataclasses import dataclass, field
 from .entry import Entry
 from .schema import Schema
 
+from . import name_to_code
+
 
 @dataclass
 class Table:
     uuid: typing.AnyStr
     name: typing.AnyStr
+    code: typing.Optional[typing.AnyStr] = field(default=None)
     references: typing.Dict[typing.AnyStr, typing.Any] = field(default=None)
     connectors: typing.Dict[typing.AnyStr, typing.Any] = field(default=None)
     schemata: typing.List[typing.AnyStr] = field(default=None)
 
     def __post_init__(self):
+
+        if not self.code:
+            self.code = name_to_code(self.name)
+
         if not self.references:
             self.references = {}
         if not self.connectors:
