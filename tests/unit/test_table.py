@@ -8,6 +8,7 @@ def test_load_base_tablestruct():
     data = {
         "uuid": str(uuid4()),
         "name": "Data Table",
+        "code": "data",
         "references": {"entity_uuid": str(uuid4())},
         "connectors": {"connector1": "connectorclass"},
         "schemata": ["table_schema"],
@@ -22,6 +23,7 @@ def test_table_export():
     data = {
         "uuid": str(uuid4()),
         "name": "Data Table",
+        "code": "data",
         "references": {"entity_uuid": str(uuid4())},
         "connectors": {"connector1": "connectorclass"},
         "schemata": ["table_schema"],
