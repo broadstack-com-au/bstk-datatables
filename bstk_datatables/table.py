@@ -19,7 +19,6 @@ class Table:
     schemata: typing.List[typing.AnyStr] = field(default=None)
 
     def __post_init__(self):
-
         if not self.code:
             self.code = name_to_code(self.name)
 
