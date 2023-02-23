@@ -29,30 +29,40 @@ class MergedSchema:
         if len(self.schemata) < 1:
             return
 
-        for _schema in self.schemata:
-            if isinstance(_schema, Schema):
-                for _field in _schema.fields:
-                    self.add_field(_field)
-                self._schema_list.append(_schema.code)
-            elif "fields" in _schema:
-                _schemaname = f"schema_{len(self._schema_list)}"
-                if "name" in _schema:
-                    _schemaname = _schema["name"]
-                self._schema_list.append(_schemaname)
-                for dictfield in _schema["fields"]:
-                    self.add_field(SchemaField(**dictfield))
+        self.load_schemas()
 
-        for _field in self.fields:
-            if _field.format._missing_lookup:
-                if _field.format.lookup not in self._missing_lookups:
-                    self._missing_lookups[_field.format.lookup] = []
-                self._missing_lookups[_field.format.lookup].append(_field.format)
+        self.process_fields()
 
         if not self.name:
             self.name = f"Merged schema: {', '.join(self._schema_list)}"
 
         if not self._missing_lookups:
             self._schema = convert_to_marshmallow(self)
+
+    def process_fields(self) -> None:
+        for _field in self.fields:
+            if not _field.format._missing_lookup:
+                continue
+
+            if _field.format.lookup not in self._missing_lookups:
+                self._missing_lookups[_field.format.lookup] = []
+            self._missing_lookups[_field.format.lookup].append(_field.format)
+
+    def load_schemas(self) -> None:
+        for _schema in self.schemata:
+            if isinstance(_schema, Schema):
+                for _field in _schema.fields:
+                    self.add_field(_field)
+                self._schema_list.append(_schema.code)
+                continue
+
+            if "fields" in _schema:
+                _schemaname = f"schema_{len(self._schema_list)}"
+                if "name" in _schema:
+                    _schemaname = _schema["name"]
+                self._schema_list.append(_schemaname)
+                for dictfield in _schema["fields"]:
+                    self.add_field(SchemaField(**dictfield))
 
     def attach_lookup(self, lookup: Enum) -> None:
         if lookup.code not in self._missing_lookups:

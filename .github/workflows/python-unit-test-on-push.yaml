@@ -41,6 +41,7 @@ jobs:
 
       - uses: snok/install-poetry@v1
         with:
+          version: latest
           virtualenvs-create: true
           virtualenvs-in-project: true
 
@@ -68,17 +69,17 @@ jobs:
 
       - name: Execute Unit Tests
         run: |
-          poetry run pytest --junit-xml=${{ matrix.build-config.python-version }}-${{ matrix.mongodb-version }}-unit-test-results.xml tests/unit
+          poetry run pytest --junit-xml=${{ matrix.build-config.python-version }}-unit-test-results.xml tests/unit
         continue-on-error: true
 
       - name: Execute Integration Tests
         run: |
-          poetry run pytest --junit-xml=${{ matrix.build-config.python-version }}-${{ matrix.mongodb-version}}-integration-test-results.xml tests/integration
+          poetry run pytest --junit-xml=${{ matrix.build-config.python-version }}-integration-test-results.xml tests/integration
         continue-on-error: true
 
       - name: Execute Functional Tests
         run: |
-          poetry run pytest --junit-xml=${{ matrix.build-config.python-version }}-${{ matrix.mongodb-version}}-functional-test-results.xml tests/functional
+          poetry run pytest --junit-xml=${{ matrix.build-config.python-version }}-functional-test-results.xml tests/functional
         continue-on-error: true
 
       - name: Upload Test Results
