@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 
 from marshmallow import Schema as MarshmallowSchema
 
-from . import convert_to_marshmallow
+from . import schema_to_marshmallow
 from .enum import Enum
 from .schema import Schema, SchemaField, SchemaFieldFormat, SchemaValuesError
 
@@ -37,7 +37,7 @@ class MergedSchema:
             self.name = f"Merged schema: {', '.join(self._schema_list)}"
 
         if not self._missing_lookups:
-            self._schema = convert_to_marshmallow(self)
+            self._schema = schema_to_marshmallow(self)
 
     def process_fields(self) -> None:
         for _field in self.fields:
@@ -72,7 +72,7 @@ class MergedSchema:
         del self._missing_lookups[lookup.code]
 
         if len(self._missing_lookups) < 1:
-            self._schema = convert_to_marshmallow(self)
+            self._schema = schema_to_marshmallow(self)
 
     def add_field(self, new_field: SchemaField) -> None:
         if new_field.code in self._field_list:

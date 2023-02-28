@@ -49,7 +49,7 @@ def export(
     return model.export()
 
 
-def convert_to_marshmallow(
+def schema_to_marshmallow(
     schema: typing.Union[Schema, MergedSchema]  # noqa: F821
 ) -> MarshmallowSchema:
     """

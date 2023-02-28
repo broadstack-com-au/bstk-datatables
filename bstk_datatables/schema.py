@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from marshmallow import Schema as MarshmallowSchema
 from marshmallow import fields as marshmallow_fields
 
-from . import SCHEMAFIELD_EXTATTR, SCHEMAFIELD_MAP, convert_to_marshmallow, name_to_code
+from . import SCHEMAFIELD_EXTATTR, SCHEMAFIELD_MAP, name_to_code, schema_to_marshmallow
 from .enum import Enum, PyEnum
 
 
@@ -66,7 +66,7 @@ class Schema:
                 self._missing_lookups[_field.format.lookup].append(_field.format)
 
         if not self._missing_lookups:
-            self._schema = convert_to_marshmallow(self)
+            self._schema = schema_to_marshmallow(self)
 
     def attach_lookup(self, lookup: Enum) -> None:
         if lookup.code not in self._missing_lookups:
@@ -76,7 +76,7 @@ class Schema:
         del self._missing_lookups[lookup.code]
 
         if len(self._missing_lookups) < 1:
-            self._schema = convert_to_marshmallow(self)
+            self._schema = schema_to_marshmallow(self)
 
     def add_field(self, schema_field: SchemaField) -> None:
         if schema_field.code in self._field_list:
@@ -141,27 +141,42 @@ class SchemaFieldFormat:
     type: typing.Optional[typing.AnyStr]
     values: typing.Optional[typing.Any] = None
     lookup: typing.Optional[typing.Any] = None
+    required: typing.Optional[bool] = field(default=False)
     _field: marshmallow_fields.Field = field(init=False, default=None)
     _missing_lookup: bool = field(init=False, default=False)
 
-    @staticmethod
-    def _get_mapped_fieldclass(type: typing.AnyStr) -> typing.Callable:
-        if type in SCHEMAFIELD_MAP:
-            return SCHEMAFIELD_MAP[type]
-
-        raise ValueError(f"Field format type `{type}` is invalid")
-
     def __post_init__(self):
-        self.create_marshmallow_field()
+        self._generate_marshmallow_field()
 
     def attach_lookup(
         self, lookup_value: typing.Union[typing.List[typing.AnyStr], PyEnum]
     ):
         self.lookup = lookup_value
-        self.create_marshmallow_field()
+        self._generate_marshmallow_field()
+
+    def export(self) -> typing.Dict[typing.AnyStr, typing.Any]:
+        _fields = ["type", "values", "lookup"]
+        rtn = {}
+        for _exportfield in _fields:
+            if _exportfield == "lookup" and isinstance(
+                self.__dict__[_exportfield], Enum
+            ):
+                rtn[_exportfield] = self.__dict__[_exportfield].code
+                continue
+            if self.__dict__[_exportfield]:
+                rtn[_exportfield] = self.__dict__[_exportfield]
+        return rtn
+
+    def _get_mapped_fieldclass(self) -> typing.Callable:
+        if self.type in SCHEMAFIELD_MAP:
+            return SCHEMAFIELD_MAP[self.type]
+
+        raise ValueError(f"Field format type `{self.type}` is invalid")
 
     def _get_field_params(self) -> typing.Union[None, typing.Dict]:
         _field_params = {}
+        if self.required is not None:
+            _field_params["required"] = self.required
         if self.type == "enum":
             self._missing_lookup = False
             if self.values:
@@ -177,22 +192,9 @@ class SchemaFieldFormat:
 
         return {**_field_params, **SCHEMAFIELD_EXTATTR[self.type]}
 
-    def create_marshmallow_field(self):
+    def _generate_marshmallow_field(self):
         _field_params = self._get_field_params()
         if _field_params is None:
             return
 
-        self._field = self._get_mapped_fieldclass(self.type)(**_field_params)
-
-    def export(self) -> typing.Dict[typing.AnyStr, typing.Any]:
-        _fields = ["type", "values", "lookup"]
-        rtn = {}
-        for _exportfield in _fields:
-            if _exportfield == "lookup" and isinstance(
-                self.__dict__[_exportfield], Enum
-            ):
-                rtn[_exportfield] = self.__dict__[_exportfield].code
-                continue
-            if self.__dict__[_exportfield]:
-                rtn[_exportfield] = self.__dict__[_exportfield]
-        return rtn
+        self._field = self._get_mapped_fieldclass()(**_field_params)
