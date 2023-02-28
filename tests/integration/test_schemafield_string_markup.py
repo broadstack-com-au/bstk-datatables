@@ -65,3 +65,34 @@ def test_macaddressfield_rejects_tooshort_mac():
 
     with pytest.raises(SchemaValuesError):
         schema.process_values({"entry": "FA:E9:51:0A"})
+
+
+def test_phonefield_accepts_idn():
+    schema = Schema(
+        **{
+            "uuid": str(uuid4()),
+            "name": "Schema",
+            "code": "schema",
+            "fields": [
+                {
+                    "name": "entry",
+                    "format": {
+                        "type": "phone",
+                    },
+                },
+            ],
+        }
+    )
+
+    schema.process_values({"entry": "0011 (407) 934-7639"})
+    schema.process_values({"entry": "(+612) 8881 1480"})
+    schema.process_values({"entry": "+61 2 8881 1480"})
+    schema.process_values({"entry": "02 8881 1480"})
+    schema.process_values({"entry": "131 241"})
+    schema.process_values({"entry": "(407) 560-2547"})
+
+    with pytest.raises(SchemaValuesError):
+        schema.process_values({"entry": "131 HELP"})
+
+    with pytest.raises(SchemaValuesError):
+        schema.process_values({"entry": "Not a Phone number"})

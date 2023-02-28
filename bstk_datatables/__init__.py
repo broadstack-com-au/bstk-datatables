@@ -11,15 +11,16 @@ from marshmallow.validate import Regexp as RegexpValidator
 Simple mapping from schemafield types to marshmallow field classes
 """
 SCHEMAFIELD_MAP: typing.Dict[typing.AnyStr, typing.Callable] = {
-    "text": marshmallow_fields.String,
-    "number": marshmallow_fields.Number,
     "bool": marshmallow_fields.Boolean,
-    "enum": marshmallow_fields.Enum,
     "datetime": marshmallow_fields.AwareDateTime,
+    "email": marshmallow_fields.Email,
+    "enum": marshmallow_fields.Enum,
     "ip": marshmallow_fields.IPInterface,
     "mac_address": marshmallow_fields.String,
+    "number": marshmallow_fields.Number,
+    "phone": marshmallow_fields.String,
+    "text": marshmallow_fields.String,
     "url": marshmallow_fields.Url,
-    "email": marshmallow_fields.Email,
 }
 
 """
@@ -34,6 +35,11 @@ SCHEMAFIELD_EXTATTR: typing.Dict[
         "validate": RegexpValidator(
             regex=r"^([0-9a-f]{2}[:-]){5}[0-9a-f]{2}$", flags=re.IGNORECASE
         ),
+    },
+    "phone": {
+        "validate": RegexpValidator(
+            regex=r"^([\(]?[\+0-9]{1,}[)]?)?([0-9 \(\)\.\-]{6,})$"
+        )
     },
 }
 
