@@ -62,7 +62,7 @@ def test_ipfield_accepts_ipv6():
         }
     )
 
-    schema.process_values({"entry": r"fe80::3c22:fbff:fe2a:9d64%bridge100"})
+    schema.process_values({"entry": r"fe80::3c22:fbff:fe2a:9d64"})
 
 
 def test_ipfield_rejects_ipv4_invalidmask():
