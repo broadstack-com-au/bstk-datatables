@@ -60,12 +60,12 @@ jobs:
       - name: Lint with black
         if: matrix.build-config.lint
         run: |
-          poetry run black --check --diff bstk-datatables
+          poetry run black --check --diff bstk_datatables
 
       - name: Run pyflakes (flake8)
         if: matrix.build-config.lint
         run: |
-          poetry run flake8 bstk-datatables
+          poetry run flake8 bstk_datatables
 
       - name: Execute Unit Tests
         run: |
