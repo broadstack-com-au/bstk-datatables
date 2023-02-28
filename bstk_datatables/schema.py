@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from marshmallow import Schema as MarshmallowSchema
 from marshmallow import fields as marshmallow_fields
 
-from . import SCHEMAFIELD_MAP, convert_to_marshmallow, name_to_code
+from . import SCHEMAFIELD_EXTATTR, SCHEMAFIELD_MAP, convert_to_marshmallow, name_to_code
 from .enum import Enum, PyEnum
 
 
@@ -160,9 +160,8 @@ class SchemaFieldFormat:
         self.lookup = lookup_value
         self.create_marshmallow_field()
 
-    def create_marshmallow_field(self):
+    def _get_field_params(self) -> typing.Union[None, typing.Dict]:
         _field_params = {}
-
         if self.type == "enum":
             self._missing_lookup = False
             if self.values:
@@ -171,7 +170,17 @@ class SchemaFieldFormat:
                 _field_params["enum"] = self.lookup.values
             else:
                 self._missing_lookup = True
-                return
+                return None
+
+        if self.type not in SCHEMAFIELD_EXTATTR:
+            return _field_params
+
+        return {**_field_params, **SCHEMAFIELD_EXTATTR[self.type]}
+
+    def create_marshmallow_field(self):
+        _field_params = self._get_field_params()
+        if _field_params is None:
+            return
 
         self._field = self._get_mapped_fieldclass(self.type)(**_field_params)
 

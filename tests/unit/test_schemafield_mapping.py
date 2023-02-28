@@ -1,4 +1,12 @@
-from marshmallow.fields import AwareDateTime, Boolean, Number, String
+from marshmallow.fields import (
+    AwareDateTime,
+    Boolean,
+    Email,
+    IPInterface,
+    Number,
+    String,
+    Url,
+)
 
 from bstk_datatables.schema import SchemaField
 
@@ -49,3 +57,18 @@ def test_schemafield_datetime():
         }
     )
     assert isinstance(field.format._field, AwareDateTime)
+
+
+def test_schemafield_ipinterface():
+    field = SchemaField(**{"name": "ip_value", "format": {"type": "ip"}})
+    assert isinstance(field.format._field, IPInterface)
+
+
+def test_schemafield_url():
+    field = SchemaField(**{"name": "ip_value", "format": {"type": "url"}})
+    assert isinstance(field.format._field, Url)
+
+
+def test_schemafield_email():
+    field = SchemaField(**{"name": "ip_value", "format": {"type": "email"}})
+    assert isinstance(field.format._field, Email)
