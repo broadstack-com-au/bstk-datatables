@@ -5,6 +5,7 @@ import typing
 
 from marshmallow import Schema as MarshmallowSchema
 from marshmallow import fields as marshmallow_fields
+from marshmallow.validate import Regexp as RegexpValidator
 
 """
 Simple mapping from schemafield types to marshmallow field classes
@@ -16,6 +17,7 @@ SCHEMAFIELD_MAP: typing.Dict[typing.AnyStr, typing.Callable] = {
     "enum": marshmallow_fields.Enum,
     "datetime": marshmallow_fields.AwareDateTime,
     "ip": marshmallow_fields.IPInterface,
+    "mac_address": marshmallow_fields.String,
     "url": marshmallow_fields.Url,
     "email": marshmallow_fields.Email,
 }
@@ -26,7 +28,14 @@ Any "default" params that should be injected into the marshmallow field construc
 SCHEMAFIELD_EXTATTR: typing.Dict[
     typing.AnyStr,
     typing.Union[typing.Dict, typing.AnyStr, typing.List, bool, str, int, float],
-] = {"url": {"schemes": ("http", "https", "ftp", "ftps", "sftp", "ssh", "tcp", "udp")}}
+] = {
+    "url": {"schemes": ("http", "https", "ftp", "ftps", "sftp", "ssh", "tcp", "udp")},
+    "mac_address": {
+        "validate": RegexpValidator(
+            regex=r"^([0-9a-f]{2}[:-]){5}[0-9a-f]{2}$", flags=re.IGNORECASE
+        ),
+    },
+}
 
 
 def export(
