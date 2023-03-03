@@ -21,7 +21,7 @@ def pytest_sessionstart():
     # Hardware Schema
     _hardware_schema = Schema(uuid=str(uuid4()), name="Hardware")
 
-    _name_field = SchemaField(name="Name", format={"type": "text"})
+    _name_field = SchemaField(name="Name", format={"type": "text", "required": True})
     _serial_field = SchemaField(name="Serial Number", format={"type": "text"})
     _hardware_schema.add_field(_name_field)
     _hardware_schema.add_field(_serial_field)
@@ -122,7 +122,6 @@ def test_process_data_from_documents(request):
     # Collect user data, keyed by the field code
     # @TODO - ?? specifically, how ??
     _user_data = {
-        "name": "Hallway Printer",
         "serial_number": "XXXX10592",
         "paper_size": "A0",
         "physical_size": "Standalone",
@@ -132,6 +131,9 @@ def test_process_data_from_documents(request):
     with pytest.raises(SchemaValuesError) as excinfo:
         _merged_table_schema.process_values(_user_data)
 
+    assert "name" in excinfo.value.errors
+    assert excinfo.value.errors["name"] == ["Missing data for required field."]
+
     assert "paper_size" in excinfo.value.errors
     assert excinfo.value.errors["paper_size"] == [
         "Must be one of: " + ", ".join(["A5", "A4", "A3"]) + "."
@@ -139,6 +141,7 @@ def test_process_data_from_documents(request):
 
     # Accept corrected user data
     _user_data["paper_size"] = "A4"
+    _user_data["name"] = "Asset name"
 
     # Ensure the user data is now correct
     _merged_table_schema.process_values(_user_data)

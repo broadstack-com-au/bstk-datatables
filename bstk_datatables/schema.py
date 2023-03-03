@@ -155,7 +155,7 @@ class SchemaFieldFormat:
         self._generate_marshmallow_field()
 
     def export(self) -> typing.Dict[typing.AnyStr, typing.Any]:
-        _fields = ["type", "values", "lookup"]
+        _fields = ["type", "values", "lookup", "required"]
         rtn = {}
         for _exportfield in _fields:
             if _exportfield == "lookup" and isinstance(
