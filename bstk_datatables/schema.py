@@ -84,7 +84,7 @@ class Schema:
         self._field_list.append(schema_field.code)
         self.fields.append(schema_field)
 
-    def set_fields(self, schema_fields: typing.List(SchemaField)):
+    def set_fields(self, schema_fields: typing.List[SchemaField]):
         self._field_list = []
         self.fields = []
         for schema_field in schema_fields:
@@ -142,6 +142,7 @@ class SchemaFieldFormat:
     values: typing.Optional[typing.Any] = None
     lookup: typing.Optional[typing.Any] = None
     required: typing.Optional[bool] = field(default=False)
+    many: typing.Optional[bool] = field(default=False)
     _field: marshmallow_fields.Field = field(init=False, default=None)
     _missing_lookup: bool = field(init=False, default=False)
 
@@ -155,7 +156,7 @@ class SchemaFieldFormat:
         self._generate_marshmallow_field()
 
     def export(self) -> typing.Dict[typing.AnyStr, typing.Any]:
-        _fields = ["type", "values", "lookup", "required"]
+        _fields = ["type", "values", "lookup", "required", "many"]
         rtn = {}
         for _exportfield in _fields:
             if _exportfield == "lookup" and isinstance(
@@ -197,4 +198,9 @@ class SchemaFieldFormat:
         if _field_params is None:
             return
 
-        self._field = self._get_mapped_fieldclass()(**_field_params)
+        if self.many:
+            self._field = marshmallow_fields.List(
+                self._get_mapped_fieldclass()(**_field_params)
+            )
+        else:
+            self._field = self._get_mapped_fieldclass()(**_field_params)

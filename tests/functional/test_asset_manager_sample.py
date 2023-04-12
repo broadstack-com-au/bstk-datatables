@@ -8,7 +8,7 @@ from bstk_datatables.schema import Schema, SchemaField, SchemaValuesError
 from bstk_datatables.table import Table
 
 
-def test_simple_usage_pattern():
+def test_simple_assetmanager_pattern():
     # Create a couple of schemas
     _hardware_schema = Schema(uuid=str(uuid4()), name="Hardware")
     assert _hardware_schema.code == "hardware"

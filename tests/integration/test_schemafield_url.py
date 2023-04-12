@@ -106,3 +106,46 @@ def test_urlfield_rejects_nonstatedproto():
 
     with pytest.raises(SchemaValuesError):
         schema.process_values({"entry": "127.0.0.1:8080"})
+
+
+def test_field_with_many_accepts_many():
+    schema = Schema(
+        **{
+            "uuid": str(uuid4()),
+            "name": "Schema",
+            "code": "schema",
+            "fields": [
+                {
+                    "name": "entry",
+                    "format": {
+                        "many": True,
+                        "type": "url",
+                    },
+                },
+            ],
+        }
+    )
+
+    schema.process_values({"entry": ["http://127.0.0.1:8080", "https://127.0.0.1:443"]})
+
+
+def test_field_with_many_rejects_if_anyfail():
+    schema = Schema(
+        **{
+            "uuid": str(uuid4()),
+            "name": "Schema",
+            "code": "schema",
+            "fields": [
+                {
+                    "name": "entry",
+                    "format": {
+                        "many": True,
+                        "type": "url",
+                    },
+                },
+            ],
+        }
+    )
+
+    with pytest.raises(SchemaValuesError):
+        schema.process_values({"entry": ["http://127.0.0.1:8080", "127.0.0.1:443"]})

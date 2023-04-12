@@ -3,10 +3,9 @@ from __future__ import annotations
 import typing
 from dataclasses import dataclass, field
 
+from . import name_to_code
 from .entry import Entry
 from .schema import Schema
-
-from . import name_to_code
 
 
 @dataclass
@@ -48,6 +47,8 @@ class Table:
         self.schemata.append(_schema)
 
     def adopt_entry(self, entry: Entry) -> Entry:
-        entry.table_id = self.uuid
+        if entry.table_id != self.uuid:
+            entry.table_id = self.uuid
+
         entry.schemata = list(dict.fromkeys(self.schemata + entry.schemata))
         return entry
