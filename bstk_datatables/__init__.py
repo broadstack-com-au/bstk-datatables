@@ -20,6 +20,7 @@ SCHEMAFIELD_MAP: typing.Dict[typing.AnyStr, typing.Callable] = {
     "number": marshmallow_fields.Number,
     "phone": marshmallow_fields.String,
     "text": marshmallow_fields.String,
+    "blob": marshmallow_fields.String,
     "url": marshmallow_fields.Url,
 }
 

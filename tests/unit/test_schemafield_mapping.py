@@ -1,12 +1,5 @@
-from marshmallow.fields import (
-    AwareDateTime,
-    Boolean,
-    Email,
-    IPInterface,
-    Number,
-    String,
-    Url,
-)
+from marshmallow.fields import (AwareDateTime, Boolean, Email, IPInterface,
+                                Number, String, Url)
 
 from bstk_datatables.schema import SchemaField
 
@@ -17,6 +10,18 @@ def test_schemafield_text():
             "name": "text_value",
             "format": {
                 "type": "text",
+            },
+        }
+    )
+    assert isinstance(field.format._field, String)
+
+
+def test_schemafield_blob():
+    field = SchemaField(
+        **{
+            "name": "text_value",
+            "format": {
+                "type": "blob",
             },
         }
     )
