@@ -280,6 +280,7 @@ def test_schema_multilookup_attachment():
             {
                 "name": "lookup_one",
                 "code": "lookup_one",
+                "description": "This is a lookup",
                 "format": {"type": "enum", "lookup": "test_enum"},
             },
             {

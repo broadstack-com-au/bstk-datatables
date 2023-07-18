@@ -111,6 +111,7 @@ class Schema:
 class SchemaField:
     name: typing.AnyStr
     format: SchemaFieldFormat
+    description: typing.AnyStr = field(default=None)
     code: typing.AnyStr = field(default=None)
     _value: typing.Any = field(init=False, default=None)
 
@@ -129,11 +130,14 @@ class SchemaField:
         self._value = value
 
     def export(self) -> typing.Dict[typing.AnyStr, typing.Any]:
-        return {
+        _rtn = {
             "name": self.__dict__["name"],
             "code": self.__dict__["code"],
             "format": self.format.export(),
         }
+        if self.description:
+            _rtn["description"] = self.__dict__["description"]
+        return _rtn
 
 
 @dataclass

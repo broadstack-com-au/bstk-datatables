@@ -1,7 +1,38 @@
-from marshmallow.fields import (AwareDateTime, Boolean, Email, IPInterface,
-                                Number, String, Url)
+from marshmallow.fields import (
+    AwareDateTime,
+    Boolean,
+    Email,
+    IPInterface,
+    Number,
+    String,
+    Url,
+)
 
 from bstk_datatables.schema import SchemaField
+
+
+def test_schemafield_description_optional():
+    field = SchemaField(
+        **{
+            "name": "text_value",
+            "format": {
+                "type": "text",
+            },
+        }
+    )
+    assert "description" not in field.export()
+
+    field = SchemaField(
+        **{
+            "name": "text_value",
+            "description": "This is a description",
+            "format": {
+                "type": "text",
+            },
+        }
+    )
+    assert "description" in field.export()
+    assert field.export()["description"] == "This is a description"
 
 
 def test_schemafield_text():
