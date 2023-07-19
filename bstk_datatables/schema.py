@@ -11,6 +11,23 @@ from . import SCHEMAFIELD_EXTATTR, SCHEMAFIELD_MAP, name_to_code, schema_to_mars
 from .enum import Enum, PyEnum
 
 
+class NestedSchemaField(marshmallow_fields.Field):
+    """
+    A little helper class to use if you're nesting a Schema as a field within another marshmallow schema.
+    """
+
+    def _serialize(
+        self,
+        value: typing.Any,
+        attr: typing.Union[str, None],
+        obj: typing.Any,
+        **kwargs,
+    ):
+        if isinstance(value, Schema):
+            return value.export()
+        return value
+
+
 class SchemaValuesError(Exception):
     errors: typing.Dict[typing.AnyStr, typing.List[typing.AnyStr]]
 
