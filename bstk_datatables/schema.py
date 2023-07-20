@@ -123,6 +123,18 @@ class Schema:
         rtn["fields"] = [_field.export() for _field in self.fields]
         return rtn
 
+    def is_complete(self) -> bool:
+        if len(self.fields) < 1:
+            return False
+        if len(self._missing_lookups) > 0:
+            return False
+        if not isinstance(self._schema, MarshmallowSchema) and not issubclass(
+            self._schema, MarshmallowSchema
+        ):
+            return False
+
+        return True
+
 
 @dataclass
 class SchemaField:

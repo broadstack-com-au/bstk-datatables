@@ -6,6 +6,7 @@ import pytest
 from bstk_datatables import export
 from bstk_datatables.enum import Enum
 from bstk_datatables.schema import (
+    NestedSchemaField,
     Schema,
     SchemaField,
     SchemaFieldFormat,
@@ -270,6 +271,42 @@ def test_schemafieldformat_accepts_lookup():
     assert _field._missing_lookup is False
 
 
+def test_schema_incomplete_nofields():
+    _lookupschema = {
+        "uuid": str(uuid4()),
+        "references": {"entity_uuid": str(uuid4())},
+        "name": "Base Schema",
+        "code": "base",
+        "fields": [],
+    }
+    schema = Schema(**_lookupschema)
+    assert schema.is_complete() is False
+
+
+def test_schema_incomplete_missing_lookups():
+    _lookupschema = {
+        "uuid": str(uuid4()),
+        "references": {"entity_uuid": str(uuid4())},
+        "name": "Base Schema",
+        "code": "base",
+        "fields": [
+            {
+                "name": "lookup_one",
+                "code": "lookup_one",
+                "description": "This is a lookup",
+                "format": {"type": "enum", "lookup": "test_enum"},
+            },
+            {
+                "name": "lookup_two",
+                "code": "lookup_two",
+                "format": {"type": "enum", "lookup": "test_enum"},
+            },
+        ],
+    }
+    schema = Schema(**_lookupschema)
+    assert schema.is_complete() is False
+
+
 def test_schema_multilookup_attachment():
     _lookupschema = {
         "uuid": str(uuid4()),
@@ -313,3 +350,49 @@ def test_schema_multilookup_attachment():
 
     _export = schema.export()
     assert _lookupschema == _export
+
+
+def test_schema_complete_after_attaching_lookup():
+    _lookupschema = {
+        "uuid": str(uuid4()),
+        "references": {"entity_uuid": str(uuid4())},
+        "name": "Base Schema",
+        "code": "base",
+        "fields": [
+            {
+                "name": "lookup_one",
+                "code": "lookup_one",
+                "description": "This is a lookup",
+                "format": {"type": "enum", "lookup": "test_enum"},
+            },
+        ],
+    }
+    schema = Schema(**_lookupschema)
+    assert schema.is_complete() is False
+
+    schema.attach_lookup(
+        Enum(
+            **{
+                "uuid": str(uuid4()),
+                "references": {"entity_uuid": str(uuid4())},
+                "code": "test_enum",
+                "name": "Test Enum",
+                "values": [
+                    "Enum Value 1",
+                    "Enum Value 2",
+                    "Enum Value 3",
+                ],
+            }
+        )
+    )
+    assert schema.is_complete() is True
+
+
+def test_nested_schemafield_export():
+    field = NestedSchemaField()
+    assert hasattr(field, "_serialize")
+    assert callable(getattr(field, "_serialize"))
+
+    schema = Schema(**_schemadata)
+    export = field._serialize(schema, None, None)
+    assert export == _schemadata
