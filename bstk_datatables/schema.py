@@ -175,7 +175,9 @@ class SchemaFieldFormat:
     values: typing.Optional[typing.Any] = None
     lookup: typing.Optional[typing.Any] = None
     required: typing.Optional[bool] = field(default=False)
+    readonly: typing.Optional[bool] = field(default=False)
     many: typing.Optional[bool] = field(default=False)
+    markup: typing.Optional[typing.Dict] = field(default=None)
     _field: marshmallow_fields.Field = field(init=False, default=None)
     _missing_lookup: bool = field(init=False, default=False)
 
@@ -189,7 +191,7 @@ class SchemaFieldFormat:
         self._generate_marshmallow_field()
 
     def export(self) -> typing.Dict[typing.AnyStr, typing.Any]:
-        _fields = ["type", "values", "lookup", "required", "many"]
+        _fields = ["type", "values", "lookup", "required", "readonly", "many", "markup"]
         rtn = {}
         for _exportfield in _fields:
             if _exportfield == "lookup" and isinstance(
@@ -211,6 +213,8 @@ class SchemaFieldFormat:
         _field_params = {}
         if self.required is not None:
             _field_params["required"] = self.required
+        if self.readonly is True:
+            _field_params["dump_only"] = True
         if self.type == "enum":
             self._missing_lookup = False
             if self.values:
