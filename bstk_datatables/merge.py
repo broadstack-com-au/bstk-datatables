@@ -86,3 +86,11 @@ class MergedSchema:
         failures = schema.validate(data=values)
         if failures:
             raise SchemaValuesError(errors=failures)
+
+    def get_defaults(self) -> typing.Dict:
+        _schema: MarshmallowSchema = self._schema()
+        return _schema.dump({})
+
+    def merge_defaults(self, values: typing.Dict) -> typing.Dict:
+        _defaults = self.get_defaults()
+        return {**_defaults, **values}

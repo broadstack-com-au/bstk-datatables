@@ -283,9 +283,8 @@ class SchemaFieldFormat:
         else:
             mapped_field = _field_class(**_field_params)
 
-        if self.many:
-            self._field = marshmallow_fields.List(mapped_field, **_field_params)
-        else:
+        if not self.many:
             self._field = mapped_field
+            return
 
-        return
+        self._field = marshmallow_fields.List(mapped_field, **_field_params)

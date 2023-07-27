@@ -13,10 +13,16 @@ def test_simple_assetmanager_pattern():
     _hardware_schema = Schema(uuid=str(uuid4()), name="Hardware")
     assert _hardware_schema.code == "hardware"
 
-    _name_field = SchemaField(name="Name", format={"type": "text"})
+    _name_field = SchemaField(
+        name="Name", format={"type": "text", "default_value": "Name"}
+    )
     _serial_field = SchemaField(name="Serial Number", format={"type": "text"})
+    _type_field = SchemaField(
+        name="Hardware type", format={"type": "text", "default_value": "Hardware"}
+    )
     _hardware_schema.add_field(_name_field)
     _hardware_schema.add_field(_serial_field)
+    _hardware_schema.add_field(_type_field)
 
     _printer_schema = Schema(uuid=str(uuid4()), name="Printers and print equipment")
     assert _printer_schema.code == "printers_and_print_equipment"
@@ -33,6 +39,19 @@ def test_simple_assetmanager_pattern():
     )
     _printer_schema.add_field(_format_field)
     _printer_schema.add_field(_size_field)
+
+    # This field will get ignored because already defined in the first schema (ignored during merge)
+    _printer_type_field = SchemaField(
+        name="Hardware type", format={"type": "text", "default_value": "printer"}
+    )
+    _printer_schema.add_field(_printer_type_field)
+
+    # This field should come through with the default
+    _hardware_subtype_field = SchemaField(
+        name="Hardware subtype",
+        format={"type": "text", "default_value": "printer", "readonly": True},
+    )
+    _printer_schema.add_field(_hardware_subtype_field)
 
     # Create a table that uses both schemas
 
@@ -76,6 +95,25 @@ def test_simple_assetmanager_pattern():
 
     # Ensure the user data is now correct
     _merged_table_schema.process_values(_user_data)
+
+    # Merge in our default values after validation (ensuring we don't trip over readonly fields)
+    _user_data = _merged_table_schema.merge_defaults(_user_data)
+
+    # Double check the schema would be unhappy about the readonly field having a value
+    with pytest.raises(SchemaValuesError):
+        _merged_table_schema.process_values(_user_data)
+
+    # Make sure we've got our default value from the first hardware type entry
+    assert _user_data.get(_type_field.code, None) == _type_field.format.default_value
+
+    # Make sure we've got our default value from the second schema
+    assert (
+        _user_data.get(_hardware_subtype_field.code, None)
+        == _hardware_subtype_field.format.default_value
+    )
+
+    # Make sure the name provided wasn't erased by the default value
+    assert _user_data.get(_name_field.code, None) == "Hallway Printer"
 
     # Set the user data into the entry
     _printer_entry.values = _user_data
