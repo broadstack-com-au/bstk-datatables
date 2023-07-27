@@ -115,6 +115,14 @@ class Schema:
 
         raise SchemaValuesError(errors=failures)
 
+    def get_defaults(self) -> typing.Dict:
+        _schema: MarshmallowSchema = self._schema()
+        return _schema.dump({})
+
+    def merge_defaults(self, values: typing.Dict) -> typing.Dict:
+        _defaults = self.get_defaults()
+        return {**_defaults, **values}
+
     def export(self) -> typing.Dict[typing.AnyStr, typing.Any]:
         _fields = ["uuid", "name", "code", "references"]
         rtn = {}
@@ -173,6 +181,7 @@ class SchemaField:
 class SchemaFieldFormat:
     type: typing.Optional[typing.AnyStr]
     values: typing.Optional[typing.Any] = None
+    default_value: typing.Optional[typing.Any] = None
     lookup: typing.Optional[typing.Any] = None
     required: typing.Optional[bool] = field(default=False)
     readonly: typing.Optional[bool] = field(default=False)
@@ -191,7 +200,16 @@ class SchemaFieldFormat:
         self._generate_marshmallow_field()
 
     def export(self) -> typing.Dict[typing.AnyStr, typing.Any]:
-        _fields = ["type", "values", "lookup", "required", "readonly", "many", "markup"]
+        _fields = [
+            "type",
+            "values",
+            "default_value",
+            "lookup",
+            "required",
+            "readonly",
+            "many",
+            "markup",
+        ]
         rtn = {}
         for _exportfield in _fields:
             if _exportfield == "lookup" and isinstance(
@@ -211,10 +229,13 @@ class SchemaFieldFormat:
 
     def _get_field_params(self) -> typing.Union[None, typing.Dict]:
         _field_params = {}
+
         if self.required is not None:
             _field_params["required"] = self.required
+
         if self.readonly is True:
             _field_params["dump_only"] = True
+
         if self.type == "enum":
             self._missing_lookup = False
             if self.values:
@@ -225,19 +246,46 @@ class SchemaFieldFormat:
                 self._missing_lookup = True
                 return None
 
+            if self.default_value:
+                _field_params["dump_default"] = self._process_enum_default(
+                    _field_params["enum"]
+                )
+
+        if self.type != "enum":
+            if self.default_value is not None:
+                _field_params["dump_default"] = self.default_value
+
         if self.type not in SCHEMAFIELD_EXTATTR:
             return _field_params
 
         return {**_field_params, **SCHEMAFIELD_EXTATTR[self.type]}
+
+    def _process_enum_default(self, enum_data: Enum):
+        if not self.default_value:
+            return None
+
+        for _member in enum_data:
+            if _member.name == self.default_value:
+                return _member
+
+        # TODO : Check for this much earlier
+        raise ValueError("Invalid default value")
 
     def _generate_marshmallow_field(self):
         _field_params = self._get_field_params()
         if _field_params is None:
             return
 
-        if self.many:
-            self._field = marshmallow_fields.List(
-                self._get_mapped_fieldclass()(**_field_params)
-            )
+        _field_class = self._get_mapped_fieldclass()
+        if issubclass(_field_class, marshmallow_fields.Enum) and self.many:
+            mapped_field = _field_class(enum=_field_params.get("enum"))
+            del _field_params["enum"]
         else:
-            self._field = self._get_mapped_fieldclass()(**_field_params)
+            mapped_field = _field_class(**_field_params)
+
+        if self.many:
+            self._field = marshmallow_fields.List(mapped_field, **_field_params)
+        else:
+            self._field = mapped_field
+
+        return

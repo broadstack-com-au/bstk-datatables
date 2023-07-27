@@ -22,15 +22,14 @@ _schemadata = {
         {
             "name": "text_value",
             "code": "text_value",
-            "format": {
-                "type": "text",
-            },
+            "format": {"type": "text", "default_value": "this is text"},
         },
         {
             "name": "number_value",
             "code": "number_value",
             "format": {
                 "type": "number",
+                "default_value": 101,
             },
         },
         {
@@ -38,6 +37,7 @@ _schemadata = {
             "code": "boolean_value",
             "format": {
                 "type": "bool",
+                "default_value": True,
             },
         },
         {
@@ -50,6 +50,7 @@ _schemadata = {
                     "Local Enum Value 2",
                     "Local Enum Value 3",
                 ],
+                "default_value": "Local Enum Value 1",
             },
         },
         {
@@ -198,6 +199,31 @@ def test_schema_accepts_valid_data():
     }
 
     schema.process_values(data)
+
+
+def test_get_schema_defaults():
+    schema = Schema(**_schemadata)
+    schema.attach_lookup(
+        Enum(
+            **{
+                "uuid": str(uuid4()),
+                "references": {"entity_uuid": str(uuid4())},
+                "code": "test_enum",
+                "name": "Test Enum",
+                "values": [
+                    "Enum Value 1",
+                    "Enum Value 2",
+                    "Enum Value 3",
+                ],
+            }
+        )
+    )
+
+    defaults = schema.get_defaults()
+    assert isinstance(defaults, dict)
+    assert set(defaults.keys()) == set(
+        ["text_value", "number_value", "boolean_value", "localenum_value"]
+    )
 
 
 def test_schema_invalidates_data():
