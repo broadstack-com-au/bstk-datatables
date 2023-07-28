@@ -20,7 +20,7 @@ class LuhnValidator(Validator):
         self,
         min_length: typing.Optional[int] = 2,
         *,
-        error: str | None = None,
+        error: typing.Optional[str] = None,
     ):
         self._min_length = min_length
         self.error = error or self.default_message  # type: str
