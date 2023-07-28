@@ -1,3 +1,5 @@
+import pytest
+from marshmallow import ValidationError
 from marshmallow.fields import (
     AwareDateTime,
     Boolean,
@@ -113,3 +115,17 @@ def test_schemafield_email():
 def test_schemafield_luhn():
     field = SchemaField(**{"name": "luhn_value", "format": {"type": "luhn"}})
     assert isinstance(field.format._field, String)
+
+
+def test_schemafield_custom_regex_validator():
+    field = SchemaField(
+        **{
+            "name": "formatted value",
+            "format": {"type": "text", "validator": "regex:[0-9]{2},[0-9]{2}"},
+        }
+    )
+    assert isinstance(field.format._field, String)
+    with pytest.raises(ValidationError):
+        field.format._field._validate("0124")
+
+    field.format._field._validate("01,24")

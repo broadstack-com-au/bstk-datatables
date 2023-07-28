@@ -7,7 +7,14 @@ from dataclasses import dataclass, field
 from marshmallow import Schema as MarshmallowSchema
 from marshmallow import fields as marshmallow_fields
 
-from . import SCHEMAFIELD_EXTATTR, SCHEMAFIELD_MAP, name_to_code, schema_to_marshmallow
+from . import (
+    SCHEMAFIELD_EXTATTR,
+    SCHEMAFIELD_MAP,
+    RegexpValidator,
+    name_to_code,
+    re,
+    schema_to_marshmallow,
+)
 from .enum import Enum, PyEnum
 
 
@@ -187,6 +194,7 @@ class SchemaFieldFormat:
     readonly: typing.Optional[bool] = field(default=False)
     many: typing.Optional[bool] = field(default=False)
     markup: typing.Optional[typing.Dict] = field(default=None)
+    validator: typing.Optional[typing.AnyStr] = field(default=None)
     _field: marshmallow_fields.Field = field(init=False, default=None)
     _missing_lookup: bool = field(init=False, default=False)
 
@@ -209,6 +217,7 @@ class SchemaFieldFormat:
             "readonly",
             "many",
             "markup",
+            "validator",
         ]
         rtn = {}
         for _exportfield in _fields:
@@ -227,7 +236,7 @@ class SchemaFieldFormat:
 
         raise ValueError(f"Field format type `{self.type}` is invalid")
 
-    def _get_field_params(self) -> typing.Union[None, typing.Dict]:
+    def _get_field_params(self) -> typing.Union[None, typing.Dict]:  # noqa: C901
         _field_params = {}
 
         if self.required is not None:
@@ -254,6 +263,11 @@ class SchemaFieldFormat:
         if self.type != "enum":
             if self.default_value is not None:
                 _field_params["dump_default"] = self.default_value
+
+        if self.validator and self.validator[:5] == "regex":
+            _field_params["validate"] = RegexpValidator(
+                regex=self.validator[6:], flags=re.IGNORECASE
+            )
 
         if self.type not in SCHEMAFIELD_EXTATTR:
             return _field_params
