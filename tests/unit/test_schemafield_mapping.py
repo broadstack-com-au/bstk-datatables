@@ -108,3 +108,8 @@ def test_schemafield_url():
 def test_schemafield_email():
     field = SchemaField(**{"name": "ip_value", "format": {"type": "email"}})
     assert isinstance(field.format._field, Email)
+
+
+def test_schemafield_luhn():
+    field = SchemaField(**{"name": "luhn_value", "format": {"type": "luhn"}})
+    assert isinstance(field.format._field, String)

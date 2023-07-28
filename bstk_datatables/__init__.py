@@ -7,6 +7,8 @@ from marshmallow import Schema as MarshmallowSchema
 from marshmallow import fields as marshmallow_fields
 from marshmallow.validate import Regexp as RegexpValidator
 
+from bstk_datatables.validators.luhn import LuhnValidator
+
 """
 Simple mapping from schemafield types to marshmallow field classes
 """
@@ -22,6 +24,7 @@ SCHEMAFIELD_MAP: typing.Dict[typing.AnyStr, typing.Callable] = {
     "text": marshmallow_fields.String,
     "blob": marshmallow_fields.String,
     "url": marshmallow_fields.Url,
+    "luhn": marshmallow_fields.String,
 }
 
 """
@@ -42,6 +45,7 @@ SCHEMAFIELD_EXTATTR: typing.Dict[
             regex=r"^([\(]?[\+0-9]{1,}[)]?)?([0-9 \(\)\.\-]{6,})$"
         )
     },
+    "luhn": {"validate": LuhnValidator},
 }
 
 
