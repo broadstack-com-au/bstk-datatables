@@ -59,9 +59,15 @@ def test_complete_crm_pattern():
         "Action": {"type": "datetime"},
         "Duration": {"type": "number"},
         "Complete": {"type": "bool"},
+        "Linked Organisation": {"type": "connector"},
+        "Linked Contact": {"type": "connector"},
     }
     for fieldname, format in _event_fields.items():
         _event_schema.add_field(SchemaField(name=fieldname, format=format))
+
+    # Create a table for events
+    _event_table = Table(uuid=str(uuid4()), name="Events")
+    _event_table.add_schema(_event_schema)
 
     # Create some organisations and add them to the table
     _org_one = Entry(
@@ -143,3 +149,25 @@ def test_complete_crm_pattern():
 
     _org_one.link_to(_org_two)
     assert _count_linked_entries(_org_one, _organisations) == 1
+
+    # Push an event into the event table
+    _event = Entry(
+        uuid=str(uuid4()),
+        name="New Event",
+        values={
+            "type": "call",
+            "content": "Call with Joe",
+            "action": "2023-12-01T16:00:00+1000",
+            "duration": "60",
+            "complete": "false",
+            "linked_organisation": _org_one.uuid,
+            "linked_contact": _contact_one.uuid,
+        },
+    )
+    _event_table.adopt_entry(_event)
+    _event_schema.process_entry(_event)
+    assert "linked_organisation" not in _event.values
+    assert "linked_contact" not in _event.values
+
+    assert "linked_organisation" in _event.connector_references
+    assert "linked_contact" in _event.connector_references

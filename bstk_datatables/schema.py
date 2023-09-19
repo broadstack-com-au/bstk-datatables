@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import typing
+import warnings
 from dataclasses import dataclass, field
 
 from marshmallow import Schema as MarshmallowSchema
@@ -15,6 +16,7 @@ from . import (
     re,
     schema_to_marshmallow,
 )
+from .entry import Entry
 from .enum import Enum, PyEnum
 
 
@@ -48,6 +50,13 @@ class SchemaValuesError(Exception):
 
 
 class AbstractSchema:
+    fields: typing.Optional[
+        typing.List[typing.Union[SchemaField, typing.Dict[typing.AnyStr, typing.Any]]]
+    ]
+    _field_list: typing.List[typing.AnyStr]
+    _schema: MarshmallowSchema
+    _missing_lookups: typing.Dict[typing.AnyStr, typing.List[SchemaFieldFormat]]
+
     def set_fields(self, schema_fields: typing.List[SchemaField]):
         self._field_list = []
         self.fields = []
@@ -64,7 +73,19 @@ class AbstractSchema:
         if len(self._missing_lookups) < 1:
             self._schema = schema_to_marshmallow(self)
 
+    def process_values(self, values: typing.Dict) -> None:
+        warnings.warn(
+            "`process_values` is deprecated. Use `check_values` for compatibility. "
+            "`process_entry` should be used instead for extended entry processing and validation. ",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.check_values(values)
+
     def check_values(self, values: typing.Dict) -> None:
+        if not self.is_complete() and not self.build():
+            raise ValueError("Schema is incomplete")
+
         _schema: MarshmallowSchema = self._schema()
         failures = _schema.validate(data=values)
         if not failures:
@@ -85,12 +106,44 @@ class AbstractSchema:
             return False
         if len(self._missing_lookups) > 0:
             return False
+        if not self._schema:
+            return False
+
         if not isinstance(self._schema, MarshmallowSchema) and not issubclass(
             self._schema, MarshmallowSchema
         ):
             return False
 
         return True
+
+    def build(self) -> bool:
+        if len(self.fields) < 1:
+            return False
+        if len(self._missing_lookups) > 0:
+            return False
+
+        self._schema = schema_to_marshmallow(self)
+        return True
+
+    def process_entry(self, entry: Entry) -> Entry:
+        if not self.is_complete() and not self.build():
+            raise ValueError("Schema is incomplete")
+
+        _connector_fields: typing.List[str] = []
+        for _field in self.fields:
+            if _field.format.type != "connector":
+                continue
+            if _field.code not in entry.values:
+                continue
+            _connector_fields.append(_field.code)
+
+        _schema: MarshmallowSchema = self._schema(only=_connector_fields)
+        _connector_data: typing.Dict = _schema.dump(entry.values)
+        for _k, _v in _connector_data.items():
+            entry.connector_references[_k] = _v
+            del entry.values[_k]
+
+        return entry
 
 
 @dataclass
@@ -135,9 +188,6 @@ class Schema(AbstractSchema):
                     self._missing_lookups[_field.format.lookup] = []
                 self._missing_lookups[_field.format.lookup].append(_field.format)
 
-        if not self._missing_lookups:
-            self._schema = schema_to_marshmallow(self)
-
     def add_field(self, schema_field: SchemaField) -> None:
         if schema_field.code in self._field_list:
             raise ValueError(f"Duplicate field name `{schema_field.name}`")
@@ -158,7 +208,9 @@ class MergedSchema(AbstractSchema):
     schemata: typing.List[typing.Union[typing.Dict[typing.AnyStr, typing.Any], Schema]]
     name: typing.AnyStr = field(default=None)
     _schema_list: typing.List[typing.AnyStr] = field(init=False, default=None)
-    fields: typing.List[SchemaField] = field(init=False, default=None)
+    fields: typing.Optional[
+        typing.List[typing.Union[SchemaField, typing.Dict[typing.AnyStr, typing.Any]]]
+    ] = field(default=None)
     _field_list: typing.List[typing.AnyStr] = field(init=False, default=None)
     _schema: MarshmallowSchema = field(init=False, default=None)
     _missing_lookups: typing.Dict[

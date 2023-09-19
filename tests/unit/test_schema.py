@@ -173,6 +173,35 @@ def test_export_schema_with_lookups():
     assert exported == _lookupschemadata
 
 
+def test_schema_process_values_deprecation():
+    schema = Schema(**_schemadata)
+    schema.attach_lookup(
+        Enum(
+            **{
+                "uuid": str(uuid4()),
+                "references": {"entity_uuid": str(uuid4())},
+                "code": "test_enum",
+                "name": "Test Enum",
+                "values": [
+                    "Enum Value 1",
+                    "Enum Value 2",
+                    "Enum Value 3",
+                ],
+            }
+        )
+    )
+    data = {
+        "text_value": "text",
+        "number_value": 1,
+        "boolean_value": False,
+        "localenum_value": "Local Enum Value 1",
+        "date_value": str(datetime.now(timezone.utc)),
+    }
+
+    with pytest.warns(DeprecationWarning):
+        schema.process_values(data)
+
+
 def test_schema_accepts_valid_data():
     schema = Schema(**_schemadata)
     schema.attach_lookup(
