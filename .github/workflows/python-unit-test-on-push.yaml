@@ -22,8 +22,6 @@ jobs:
       fail-fast: false
       matrix:
         build-config:
-          - python-version: "3.7"
-            lint: false
           - python-version: "3.8"
             lint: false
           - python-version: "3.9"
