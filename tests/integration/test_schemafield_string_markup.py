@@ -22,7 +22,7 @@ def test_macaddressfield_accepts_mac():
         }
     )
 
-    schema.process_values({"entry": "00:B9:FA:E9:51:0A"})
+    schema.check_values({"entry": "00:B9:FA:E9:51:0A"})
 
 
 def test_macaddressfield_rejects_invalid_mac():
@@ -43,7 +43,7 @@ def test_macaddressfield_rejects_invalid_mac():
     )
 
     with pytest.raises(SchemaValuesError):
-        schema.process_values({"entry": "GZ:B9:FA:E9:51:0A"})
+        schema.check_values({"entry": "GZ:B9:FA:E9:51:0A"})
 
 
 def test_macaddressfield_rejects_tooshort_mac():
@@ -64,7 +64,7 @@ def test_macaddressfield_rejects_tooshort_mac():
     )
 
     with pytest.raises(SchemaValuesError):
-        schema.process_values({"entry": "FA:E9:51:0A"})
+        schema.check_values({"entry": "FA:E9:51:0A"})
 
 
 def test_phonefield_accepts_idn():
@@ -84,15 +84,15 @@ def test_phonefield_accepts_idn():
         }
     )
 
-    schema.process_values({"entry": "0011 (407) 934-7639"})
-    schema.process_values({"entry": "(+612) 8881 1480"})
-    schema.process_values({"entry": "+61 2 8881 1480"})
-    schema.process_values({"entry": "02 8881 1480"})
-    schema.process_values({"entry": "131 241"})
-    schema.process_values({"entry": "(407) 560-2547"})
+    schema.check_values({"entry": "0011 (407) 934-7639"})
+    schema.check_values({"entry": "(+612) 8881 1480"})
+    schema.check_values({"entry": "+61 2 8881 1480"})
+    schema.check_values({"entry": "02 8881 1480"})
+    schema.check_values({"entry": "131 241"})
+    schema.check_values({"entry": "(407) 560-2547"})
 
     with pytest.raises(SchemaValuesError):
-        schema.process_values({"entry": "131 HELP"})
+        schema.check_values({"entry": "131 HELP"})
 
     with pytest.raises(SchemaValuesError):
-        schema.process_values({"entry": "Not a Phone number"})
+        schema.check_values({"entry": "Not a Phone number"})

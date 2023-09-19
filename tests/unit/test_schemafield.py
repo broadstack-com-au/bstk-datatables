@@ -1,4 +1,5 @@
 import marshmallow
+import pytest
 
 from bstk_datatables.schema import SchemaField
 
@@ -35,6 +36,33 @@ def test_schemafield_wide():
         },
     }
 
+    field = SchemaField(**field_data)
+    assert field.export() == field_data
+    assert isinstance(field.format._field, marshmallow.fields.Field)
+
+
+def test_schemafield_invalid_connector_usage():
+    field_data = {
+        "name": "text_value",
+        "code": "text_value",
+        "format": {
+            "type": "text",
+            "connector_data": {"code": "myconnector"},
+        },
+    }
+    with pytest.raises(ValueError):
+        SchemaField(**field_data)
+
+
+def test_schemafield_valid_connector_usage():
+    field_data = {
+        "name": "connector_value",
+        "code": "connector_value",
+        "format": {
+            "type": "connector",
+            "connector_data": {"code": "myconnector", "argv": [0, "test", False, None]},
+        },
+    }
     field = SchemaField(**field_data)
     assert field.export() == field_data
     assert isinstance(field.format._field, marshmallow.fields.Field)

@@ -3,8 +3,7 @@ from uuid import uuid4
 import pytest
 
 from bstk_datatables.entry import Entry
-from bstk_datatables.merge import MergedSchema
-from bstk_datatables.schema import Schema, SchemaField, SchemaValuesError
+from bstk_datatables.schema import MergedSchema, Schema, SchemaField, SchemaValuesError
 from bstk_datatables.table import Table
 
 
@@ -80,7 +79,7 @@ def test_simple_assetmanager_pattern():
 
     # Validate the input
     with pytest.raises(SchemaValuesError) as excinfo:
-        _merged_table_schema.process_values(_user_data)
+        _merged_table_schema.check_values(_user_data)
 
     assert "paper_size" in excinfo.value.errors
     assert excinfo.value.errors["paper_size"] == [
@@ -94,14 +93,14 @@ def test_simple_assetmanager_pattern():
     _user_data[_format_field.code] = "A4"
 
     # Ensure the user data is now correct
-    _merged_table_schema.process_values(_user_data)
+    _merged_table_schema.check_values(_user_data)
 
     # Merge in our default values after validation (ensuring we don't trip over readonly fields)
     _user_data = _merged_table_schema.merge_defaults(_user_data)
 
     # Double check the schema would be unhappy about the readonly field having a value
     with pytest.raises(SchemaValuesError):
-        _merged_table_schema.process_values(_user_data)
+        _merged_table_schema.check_values(_user_data)
 
     # Make sure we've got our default value from the first hardware type entry
     assert _user_data.get(_type_field.code, None) == _type_field.format.default_value

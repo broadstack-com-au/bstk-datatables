@@ -22,7 +22,7 @@ def test_emailfield_accepts_email():
         }
     )
 
-    schema.process_values({"entry": "a@b.com"})
+    schema.check_values({"entry": "a@b.com"})
 
 
 def test_emailfield_rejects_float():
@@ -43,7 +43,7 @@ def test_emailfield_rejects_float():
     )
 
     with pytest.raises(SchemaValuesError):
-        schema.process_values({"entry": "1.1"})
+        schema.check_values({"entry": "1.1"})
 
 
 def test_emailfield_rejects_string():
@@ -64,7 +64,7 @@ def test_emailfield_rejects_string():
     )
 
     with pytest.raises(SchemaValuesError):
-        schema.process_values({"entry": "1.1a"})
+        schema.check_values({"entry": "1.1a"})
 
 
 def test_emailfield_rejects_bool():
@@ -85,4 +85,4 @@ def test_emailfield_rejects_bool():
     )
 
     with pytest.raises(SchemaValuesError):
-        schema.process_values({"entry": False})
+        schema.check_values({"entry": False})

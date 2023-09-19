@@ -22,7 +22,7 @@ def test_ipfield_accepts_ipv4():
         }
     )
 
-    schema.process_values({"entry": "127.0.0.1"})
+    schema.check_values({"entry": "127.0.0.1"})
 
 
 def test_ipfield_accepts_ipv4_masked():
@@ -42,7 +42,7 @@ def test_ipfield_accepts_ipv4_masked():
         }
     )
 
-    schema.process_values({"entry": "127.0.0.1/24"})
+    schema.check_values({"entry": "127.0.0.1/24"})
 
 
 def test_ipfield_accepts_ipv6():
@@ -62,7 +62,7 @@ def test_ipfield_accepts_ipv6():
         }
     )
 
-    schema.process_values({"entry": r"fe80::3c22:fbff:fe2a:9d64"})
+    schema.check_values({"entry": r"fe80::3c22:fbff:fe2a:9d64"})
 
 
 def test_ipfield_rejects_ipv4_invalidmask():
@@ -83,7 +83,7 @@ def test_ipfield_rejects_ipv4_invalidmask():
     )
 
     with pytest.raises(SchemaValuesError):
-        schema.process_values({"entry": "127.0.0.1/64"})
+        schema.check_values({"entry": "127.0.0.1/64"})
 
 
 def test_ipfield_rejects_crap():
@@ -104,4 +104,4 @@ def test_ipfield_rejects_crap():
     )
 
     with pytest.raises(SchemaValuesError):
-        schema.process_values({"entry": "localhost"})
+        schema.check_values({"entry": "localhost"})

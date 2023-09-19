@@ -47,8 +47,54 @@ class SchemaValuesError(Exception):
         super().__init__(*args)
 
 
+class AbstractSchema:
+    def set_fields(self, schema_fields: typing.List[SchemaField]):
+        self._field_list = []
+        self.fields = []
+        for schema_field in schema_fields:
+            self.add_field(schema_field)
+
+    def attach_lookup(self, lookup: Enum) -> None:
+        if lookup.code not in self._missing_lookups:
+            raise ValueError(f"Invalid lookup reference `{lookup.code}")
+        for _missing_lookup in self._missing_lookups[lookup.code]:
+            _missing_lookup.attach_lookup(lookup)
+        del self._missing_lookups[lookup.code]
+
+        if len(self._missing_lookups) < 1:
+            self._schema = schema_to_marshmallow(self)
+
+    def check_values(self, values: typing.Dict) -> None:
+        _schema: MarshmallowSchema = self._schema()
+        failures = _schema.validate(data=values)
+        if not failures:
+            return
+
+        raise SchemaValuesError(errors=failures)
+
+    def get_defaults(self) -> typing.Dict:
+        _schema: MarshmallowSchema = self._schema()
+        return _schema.dump({})
+
+    def merge_defaults(self, values: typing.Dict) -> typing.Dict:
+        _defaults = self.get_defaults()
+        return {**_defaults, **values}
+
+    def is_complete(self) -> bool:
+        if len(self.fields) < 1:
+            return False
+        if len(self._missing_lookups) > 0:
+            return False
+        if not isinstance(self._schema, MarshmallowSchema) and not issubclass(
+            self._schema, MarshmallowSchema
+        ):
+            return False
+
+        return True
+
+
 @dataclass
-class Schema:
+class Schema(AbstractSchema):
     uuid: typing.AnyStr
     name: typing.AnyStr
     code: typing.Optional[typing.AnyStr] = field(default=None)
@@ -92,43 +138,11 @@ class Schema:
         if not self._missing_lookups:
             self._schema = schema_to_marshmallow(self)
 
-    def attach_lookup(self, lookup: Enum) -> None:
-        if lookup.code not in self._missing_lookups:
-            raise ValueError(f"Invalid lookup reference `{lookup.code}")
-        for _missing_lookup in self._missing_lookups[lookup.code]:
-            _missing_lookup.attach_lookup(lookup)
-        del self._missing_lookups[lookup.code]
-
-        if len(self._missing_lookups) < 1:
-            self._schema = schema_to_marshmallow(self)
-
     def add_field(self, schema_field: SchemaField) -> None:
         if schema_field.code in self._field_list:
             raise ValueError(f"Duplicate field name `{schema_field.name}`")
         self._field_list.append(schema_field.code)
         self.fields.append(schema_field)
-
-    def set_fields(self, schema_fields: typing.List[SchemaField]):
-        self._field_list = []
-        self.fields = []
-        for schema_field in schema_fields:
-            self.add_field(schema_field)
-
-    def process_values(self, values: typing.Dict) -> None:
-        _schema: MarshmallowSchema = self._schema()
-        failures = _schema.validate(data=values)
-        if not failures:
-            return
-
-        raise SchemaValuesError(errors=failures)
-
-    def get_defaults(self) -> typing.Dict:
-        _schema: MarshmallowSchema = self._schema()
-        return _schema.dump({})
-
-    def merge_defaults(self, values: typing.Dict) -> typing.Dict:
-        _defaults = self.get_defaults()
-        return {**_defaults, **values}
 
     def export(self) -> typing.Dict[typing.AnyStr, typing.Any]:
         _fields = ["uuid", "name", "code", "references"]
@@ -138,17 +152,69 @@ class Schema:
         rtn["fields"] = [_field.export() for _field in self.fields]
         return rtn
 
-    def is_complete(self) -> bool:
-        if len(self.fields) < 1:
-            return False
-        if len(self._missing_lookups) > 0:
-            return False
-        if not isinstance(self._schema, MarshmallowSchema) and not issubclass(
-            self._schema, MarshmallowSchema
-        ):
-            return False
 
-        return True
+@dataclass
+class MergedSchema(AbstractSchema):
+    schemata: typing.List[typing.Union[typing.Dict[typing.AnyStr, typing.Any], Schema]]
+    name: typing.AnyStr = field(default=None)
+    _schema_list: typing.List[typing.AnyStr] = field(init=False, default=None)
+    fields: typing.List[SchemaField] = field(init=False, default=None)
+    _field_list: typing.List[typing.AnyStr] = field(init=False, default=None)
+    _schema: MarshmallowSchema = field(init=False, default=None)
+    _missing_lookups: typing.Dict[
+        typing.AnyStr, typing.List[SchemaFieldFormat]
+    ] = field(init=False, default=None)
+
+    def __post_init__(self):
+        self._missing_lookups = {}
+        self._schema_list = []
+        self.fields = []
+        self._field_list = []
+
+        if len(self.schemata) < 1:
+            return
+
+        self.load_schemas()
+
+        self.process_fields()
+
+        if not self.name:
+            self.name = f"Merged schema: {', '.join(self._schema_list)}"
+
+        if not self._missing_lookups:
+            self._schema = schema_to_marshmallow(self)
+
+    def process_fields(self) -> None:
+        for _field in self.fields:
+            if not _field.format._missing_lookup:
+                continue
+
+            if _field.format.lookup not in self._missing_lookups:
+                self._missing_lookups[_field.format.lookup] = []
+            self._missing_lookups[_field.format.lookup].append(_field.format)
+
+    def add_field(self, new_field: SchemaField) -> None:
+        if new_field.code in self._field_list:
+            # Duplicates are skipped here because we're merging.
+            return
+        self._field_list.append(new_field.code)
+        self.fields.append(new_field)
+
+    def load_schemas(self) -> None:
+        for _schema in self.schemata:
+            if isinstance(_schema, Schema):
+                for _field in _schema.fields:
+                    self.add_field(_field)
+                self._schema_list.append(_schema.code)
+                continue
+
+            if "fields" in _schema:
+                _schemaname = f"schema_{len(self._schema_list)}"
+                if "name" in _schema:
+                    _schemaname = _schema["name"]
+                self._schema_list.append(_schemaname)
+                for dictfield in _schema["fields"]:
+                    self.add_field(SchemaField(**dictfield))
 
 
 @dataclass
@@ -195,10 +261,18 @@ class SchemaFieldFormat:
     many: typing.Optional[bool] = field(default=False)
     markup: typing.Optional[typing.Dict] = field(default=None)
     validator: typing.Optional[typing.AnyStr] = field(default=None)
+    connector_data: typing.Optional[typing.Dict[typing.AnyStr, typing.Any]] = field(
+        default=None
+    )
     _field: marshmallow_fields.Field = field(init=False, default=None)
     _missing_lookup: bool = field(init=False, default=False)
 
     def __post_init__(self):
+        if self.type != "connector" and self.connector_data is not None:
+            raise ValueError(
+                "connector_data can only be supplied for fields of type `connector`"
+            )
+
         self._generate_marshmallow_field()
 
     def attach_lookup(
@@ -218,6 +292,7 @@ class SchemaFieldFormat:
             "many",
             "markup",
             "validator",
+            "connector_data",
         ]
         rtn = {}
         for _exportfield in _fields:
@@ -301,4 +376,27 @@ class SchemaFieldFormat:
             self._field = mapped_field
             return
 
-        self._field = marshmallow_fields.List(mapped_field, **_field_params)
+        self._field = marshmallow_fields.List(
+            mapped_field, **self._extract_default_params(_field_params)
+        )
+
+    def _extract_default_params(self, params: typing.Dict) -> typing.Dict:
+        if not params:
+            return None
+        # .. dodge ..
+        _std_fields = (
+            "load_default",
+            "missing",
+            "dump_default",
+            "default",
+            "data_key",
+            "attribute",
+            "validate",
+            "required",
+            "allow_none",
+            "load_only",
+            "dump_only",
+            "error_messages",
+            "metadata",
+        )
+        return {k: params[k] for k in _std_fields if k in params}

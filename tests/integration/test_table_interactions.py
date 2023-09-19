@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 from bstk_datatables.entry import Entry
-from bstk_datatables.merge import MergedSchema
+from bstk_datatables.schema import MergedSchema
 from bstk_datatables.table import Table
 
 
@@ -90,4 +90,4 @@ def test_table_process_entry():
         _schemalist.append(_schemas[_schema])
 
     _merged_schema = MergedSchema(schemata=_schemalist)
-    _merged_schema.process_values(entry.values)
+    _merged_schema.check_values(entry.values)

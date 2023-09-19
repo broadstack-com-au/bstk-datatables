@@ -25,6 +25,7 @@ SCHEMAFIELD_MAP: typing.Dict[typing.AnyStr, typing.Callable] = {
     "blob": marshmallow_fields.String,
     "url": marshmallow_fields.Url,
     "luhn": marshmallow_fields.String,
+    "connector": marshmallow_fields.Dict,
 }
 
 """
@@ -79,3 +80,9 @@ def name_to_code(name: typing.AnyStr) -> typing.AnyStr:
     """
     code = re.sub(r"/(\W)/gm", "", name.replace(" ", "_"))
     return code.lower()
+
+
+def process_schema_entry(
+    schema: typing.Union[Schema, MergedSchema], model: Entry  # noqa: F821
+) -> None:
+    return

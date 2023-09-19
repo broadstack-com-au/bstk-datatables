@@ -30,7 +30,7 @@ Schema models are;
 * `SchemaFieldFormat`: The specific instructions for how the field should be collected, represented, formatted and stored
 * `SchemaValuesError`: The only type of exception raised during schema validation
 
-These schemas and fields are mapped to equivalent [Marshmallow structures](https://marshmallow.readthedocs.io/en/stable/) which provide the entry value validation mechanisms.. ref: `Schema.process_values()`
+These schemas and fields are mapped to equivalent [Marshmallow structures](https://marshmallow.readthedocs.io/en/stable/) which provide the entry value validation mechanisms.. ref: `Schema.check_values()`
 
 ### Entry
 

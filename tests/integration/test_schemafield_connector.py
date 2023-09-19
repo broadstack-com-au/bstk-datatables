@@ -5,7 +5,7 @@ import pytest
 from bstk_datatables.schema import Schema, SchemaValuesError
 
 
-def test_field_is_required():
+def test_connector_field_entry_processing():
     schema = Schema(
         **{
             "uuid": str(uuid4()),
@@ -18,7 +18,15 @@ def test_field_is_required():
                 },
                 {
                     "name": "entry2",
-                    "format": {"type": "text", "required": True},
+                    "format": {"type": "connector", "required": True},
+                },
+                {
+                    "name": "entry3",
+                    "format": {
+                        "type": "connector",
+                        "required": True,
+                        "connector_data": {""},
+                    },
                 },
             ],
         }
@@ -30,4 +38,5 @@ def test_field_is_required():
     with pytest.raises(SchemaValuesError):
         schema.check_values({"entry1": "text", "entry2": None})
 
-    schema.check_values({"entry2": "value"})
+    with pytest.raises(SchemaValuesError):
+        schema.check_values({"entry2": "value"})

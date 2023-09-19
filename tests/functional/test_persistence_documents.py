@@ -7,8 +7,7 @@ import pytest
 
 import bstk_datatables
 from bstk_datatables.entry import Entry
-from bstk_datatables.merge import MergedSchema
-from bstk_datatables.schema import Schema, SchemaField, SchemaValuesError
+from bstk_datatables.schema import MergedSchema, Schema, SchemaField, SchemaValuesError
 from bstk_datatables.table import Table
 
 TEMPDIR = TemporaryDirectory()
@@ -129,7 +128,7 @@ def test_process_data_from_documents(request):
 
     # Validate the input
     with pytest.raises(SchemaValuesError) as excinfo:
-        _merged_table_schema.process_values(_user_data)
+        _merged_table_schema.check_values(_user_data)
 
     assert "name" in excinfo.value.errors
     assert excinfo.value.errors["name"] == ["Missing data for required field."]
@@ -144,7 +143,7 @@ def test_process_data_from_documents(request):
     _user_data["name"] = "Asset name"
 
     # Ensure the user data is now correct
-    _merged_table_schema.process_values(_user_data)
+    _merged_table_schema.check_values(_user_data)
 
     # Set the user data into the entry
     _printer_entry.values = _user_data

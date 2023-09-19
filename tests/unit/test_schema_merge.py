@@ -3,7 +3,7 @@ from uuid import uuid4
 import pytest
 
 from bstk_datatables import export
-from bstk_datatables.merge import MergedSchema, SchemaValuesError
+from bstk_datatables.schema import MergedSchema, SchemaValuesError
 
 _schemadata = [
     {
@@ -91,17 +91,17 @@ def test_merged_schema_noexport():
 def test_merged_schema_accepts_data():
     schema = MergedSchema(schemata=_schemadata)
     assert isinstance(schema, MergedSchema)
-    schema.process_values(_schemavalues)
+    schema.check_values(_schemavalues)
 
 
 def test_merged_schema_rejects_invalid_data():
     schema = MergedSchema(schemata=_schemadata)
     assert isinstance(schema, MergedSchema)
     with pytest.raises(SchemaValuesError):
-        schema.process_values(_invalid_schemavalues)
+        schema.check_values(_invalid_schemavalues)
 
     try:
-        schema.process_values(_invalid_schemavalues)
+        schema.check_values(_invalid_schemavalues)
     except SchemaValuesError as e:
         for key in _invalid_schemavalues.keys():
             assert key in e.errors
