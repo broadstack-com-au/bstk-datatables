@@ -65,20 +65,46 @@ jobs:
         run: |
           poetry run flake8 bstk_datatables
 
+      - name: Execute Unit Tests with Coverage
+        run: |
+          poetry run coverage run -m pytest --junit-xml=${{ matrix.build-config.python-version }}-unit-test-results.xml tests/unit
+        if: ${{ matrix.build-config.python-version == '3.11' }}
+        continue-on-error: true
+
       - name: Execute Unit Tests
         run: |
           poetry run pytest --junit-xml=${{ matrix.build-config.python-version }}-unit-test-results.xml tests/unit
+        if: ${{ matrix.build-config.python-version != '3.11' }}
+        continue-on-error: true
+
+      - name: Execute Integration Tests with Coverage
+        run: |
+          poetry run coverage run -m -a pytest --junit-xml=${{ matrix.build-config.python-version }}-integration-test-results.xml tests/integration
+        if: ${{ matrix.build-config.python-version == '3.11' }}
         continue-on-error: true
 
       - name: Execute Integration Tests
         run: |
           poetry run pytest --junit-xml=${{ matrix.build-config.python-version }}-integration-test-results.xml tests/integration
+        if: ${{ matrix.build-config.python-version != '3.11' }}
+        continue-on-error: true
+
+      - name: Execute Functional Tests with Coverage
+        run: |
+          poetry run coverage run -m -a pytest --junit-xml=${{ matrix.build-config.python-version }}-functional-test-results.xml tests/functional
+        if: ${{ matrix.build-config.python-version == '3.11' }}
         continue-on-error: true
 
       - name: Execute Functional Tests
         run: |
           poetry run pytest --junit-xml=${{ matrix.build-config.python-version }}-functional-test-results.xml tests/functional
+        if: ${{ matrix.build-config.python-version != '3.11' }}
         continue-on-error: true
+
+      - name: Generate Coverage report
+        run: |
+          coverage xml -o coverage-test-results.xml
+        if: ${{ matrix.build-config.python-version == '3.11' }}
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v3
