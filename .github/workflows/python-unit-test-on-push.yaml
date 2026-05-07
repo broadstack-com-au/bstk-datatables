@@ -28,6 +28,10 @@ jobs:
             lint: true
           - python-version: "3.10"
             lint: true
+          - python-version: "3.11"
+            lint: true
+          - python-version: "3.12"
+            lint: true
 
     steps:
       - uses: actions/checkout@v3
@@ -107,13 +111,13 @@ jobs:
         if: ${{ matrix.build-config.python-version == '3.11' }}
 
       - name: Upload Test Results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Test Results (Python ${{ matrix.build-config.python-version }})
           path: "*-test-results.xml"
 
       - name: Upload Test Logs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Test Logs (Python ${{ matrix.build-config.python-version }})
           path: "logs/*.log"
@@ -128,7 +132,7 @@ jobs:
 
     steps:
       - name: Upload Event File
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Event File
           path: ${{ github.event_path }}
