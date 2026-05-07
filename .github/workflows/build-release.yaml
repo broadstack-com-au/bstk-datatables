@@ -30,7 +30,7 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "${{ steps.release_name.outputs.branch }}"
           draft: true
-          prerelease: true
+          prerelease: false
           title: "Release / ${{ steps.release_name.outputs.branch }}"
           files: |
             bstk_datatables-${{ github.sha }}.tgz
