@@ -65,7 +65,7 @@ jobs:
 
       - name: Execute Unit Tests with Coverage
         run: |
-          poetry run coverage run -m pytest --junit-xml=${{ matrix.build-config.python-version }}-unit-test-results.xml tests/unit
+          poetry run coverage run -m -a pytest --junit-xml=${{ matrix.python-version }}-unit-test-results.xml tests/unit
         if: ${{ matrix.build-config.python-version == '3.11' }}
         continue-on-error: true
 
@@ -101,8 +101,15 @@ jobs:
 
       - name: Generate Coverage report
         run: |
-          coverage xml -o coverage-test-results.xml
+          poetry run coverage xml -o coverage-results.xml
         if: ${{ matrix.build-config.python-version == '3.11' }}
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: Coverage Report (Python ${{ matrix.build-config.python-version }})
+          path: "coverage-results.xml"
+        if: ${{ matrix.build-config.python-version != '3.11' }}
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
