@@ -159,9 +159,9 @@ class Schema(AbstractSchema):
     ] = field(default=None)
     _field_list: typing.List[typing.AnyStr] = field(init=False, default=None)
     _schema: MarshmallowSchema = field(init=False, default=None)
-    _missing_lookups: typing.Dict[
-        typing.AnyStr, typing.List[SchemaFieldFormat]
-    ] = field(init=False, default=None)
+    _missing_lookups: typing.Dict[typing.AnyStr, typing.List[SchemaFieldFormat]] = (
+        field(init=False, default=None)
+    )
 
     def __post_init__(self):
         self._missing_lookups = {}
@@ -213,9 +213,9 @@ class MergedSchema(AbstractSchema):
     ] = field(default=None)
     _field_list: typing.List[typing.AnyStr] = field(init=False, default=None)
     _schema: MarshmallowSchema = field(init=False, default=None)
-    _missing_lookups: typing.Dict[
-        typing.AnyStr, typing.List[SchemaFieldFormat]
-    ] = field(init=False, default=None)
+    _missing_lookups: typing.Dict[typing.AnyStr, typing.List[SchemaFieldFormat]] = (
+        field(init=False, default=None)
+    )
 
     def __post_init__(self):
         self._missing_lookups = {}
@@ -428,9 +428,8 @@ class SchemaFieldFormat:
             self._field = mapped_field
             return
 
-        self._field = marshmallow_fields.List(
-            mapped_field, **self._extract_default_params(_field_params)
-        )
+        _default_params = self._extract_default_params(_field_params) or {}
+        self._field = marshmallow_fields.List(mapped_field, **_default_params)
 
     def _extract_default_params(self, params: typing.Dict) -> typing.Dict:
         if not params:
