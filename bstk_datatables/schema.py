@@ -159,9 +159,9 @@ class Schema(AbstractSchema):
     ] = field(default=None)
     _field_list: typing.List[typing.AnyStr] = field(init=False, default=None)
     _schema: MarshmallowSchema = field(init=False, default=None)
-    _missing_lookups: typing.Dict[typing.AnyStr, typing.List[SchemaFieldFormat]] = (
-        field(init=False, default=None)
-    )
+    _missing_lookups: typing.Dict[
+        typing.AnyStr, typing.List[SchemaFieldFormat]
+    ] = field(init=False, default=None)
 
     def __post_init__(self):
         self._missing_lookups = {}
@@ -213,9 +213,9 @@ class MergedSchema(AbstractSchema):
     ] = field(default=None)
     _field_list: typing.List[typing.AnyStr] = field(init=False, default=None)
     _schema: MarshmallowSchema = field(init=False, default=None)
-    _missing_lookups: typing.Dict[typing.AnyStr, typing.List[SchemaFieldFormat]] = (
-        field(init=False, default=None)
-    )
+    _missing_lookups: typing.Dict[
+        typing.AnyStr, typing.List[SchemaFieldFormat]
+    ] = field(init=False, default=None)
 
     def __post_init__(self):
         self._missing_lookups = {}
