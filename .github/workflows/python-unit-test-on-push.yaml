@@ -22,19 +22,13 @@ jobs:
       fail-fast: false
       matrix:
         build-config:
-          - python-version: "3.8"
-            lint: false
-          - python-version: "3.9"
-            lint: true
-          - python-version: "3.10"
-            lint: true
           - python-version: "3.11"
             lint: true
           - python-version: "3.12"
             lint: true
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.build-config.python-version }}
         uses: actions/setup-python@v4
@@ -49,7 +43,7 @@ jobs:
 
       - name: cache deps
         id: cache-deps
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .venv
           key: pydeps-${{ hashFiles('**/poetry.lock') }}-${{ matrix.build-config.python-version }}
