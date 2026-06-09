@@ -18,17 +18,17 @@ jobs:
 
       - name: Extract release name from branch ref
         shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/release/})"
+        run: echo "{branch}={$(echo ${GITHUB_REF#refs/heads/release/})}" >> $GITHUB_OUTPUT
         id: release_name
 
       - name: Create release bundle
         run: git archive HEAD --prefix="bstk_datatables-${{ github.sha }}/" --output="bstk_datatables-${{ github.sha }}.tgz"
 
       - name: Create release
-        uses: "marvinpinto/action-automatic-releases@latest"
+        uses: "softprops/action-gh-release@v3.0.0"
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "${{ steps.release_name.outputs.branch }}"
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          tag_name: "${{ steps.release_name.outputs.branch }}"
           draft: true
           prerelease: false
           title: "Release / ${{ steps.release_name.outputs.branch }}"
