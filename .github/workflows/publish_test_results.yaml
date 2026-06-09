@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Download artifact
-        uses: dawidd6/action-download-artifact@v2
+        uses: dawidd6/action-download-artifact@v21
         with:
           workflow: ${{ github.event.workflow_run.workflow_id }}
           run_id: ${{ github.event.workflow_run.id }}
@@ -36,14 +36,14 @@ jobs:
           event_name: ${{ github.event.workflow_run.event }}
 
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           token: "${{github.token}}"
           ref: ${{ github.event.workflow_run.head_sha }}
           path: "onespark"
 
       - name: Run Test Report
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v3
         if: hashFiles('artifacts/**/*.xml') != ''
         with:
           list-suites: "all"
