@@ -82,11 +82,11 @@ class AbstractSchema:
         )
         self.check_values(values)
 
-    def check_values(self, values: typing.Dict) -> None:
+    def check_values(self, values: typing.Dict, partial: bool = False) -> None:
         if not self.is_complete() and not self.build():
             raise ValueError("Schema is incomplete")
 
-        _schema: MarshmallowSchema = self._schema()
+        _schema: MarshmallowSchema = self._schema(partial=partial)
         failures = _schema.validate(data=values)
         if not failures:
             return
